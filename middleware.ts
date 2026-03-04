@@ -2,8 +2,6 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 
-
-
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
 
@@ -22,46 +20,73 @@ export async function middleware(req: NextRequest) {
     }
   )
 
-  const { data: { user }, error } = await supabase.auth.getUser()
+  const pathname = req.nextUrl.pathname
 
-  let userRole = ''
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  let profileRole = 'user'
 
   if (user) {
-    const { data: profileData, error: profileError } = await supabase
+    const { data: profile } = await supabase
       .from('profiles')
-      .select('role, username')
+      .select('role')
       .eq('id', user.id)
       .maybeSingle()
 
-    if (profileData) {
-      userRole = String(profileData.role || '').toLowerCase().trim()
+    profileRole = String(profile?.role || 'user').toLowerCase()
+  }
+
+  // ✅ Protect private routes
+  if (
+    !user &&
+    (
+      pathname.startsWith('/admin') ||
+      pathname.startsWith('/contributor') ||
+      pathname.startsWith('/dashboard') ||
+      pathname.startsWith('/favorites')
+    )
+  ) {
+    return NextResponse.redirect(new URL('/auth/signin', req.url))
+  }
+
+  // ✅ Redirect contributor landing restriction
+  if (pathname.startsWith('/become-contributor')) {
+    if (profileRole !== 'user') {
+      return NextResponse.redirect(new URL('/', req.url))
     }
   }
 
-  const pathname = req.nextUrl.pathname
-
-  if (user && (pathname === '/' || pathname.startsWith('/auth'))) {
-    if (userRole === 'contributor') {
-      return NextResponse.redirect(new URL('/contributor/dashboard', req.url))
-    } else {
+  // ✅ Auth routing
+  if (user && pathname.startsWith('/auth')) {
+    if (profileRole === 'admin') {
       return NextResponse.redirect(new URL('/admin/dashboard', req.url))
     }
+
+    if (profileRole === 'contributor') {
+      return NextResponse.redirect(new URL('/contributor/dashboard', req.url))
+    }
+
+    return NextResponse.redirect(new URL('/dashboard', req.url))
   }
 
-  // Not logged-in user trying to access dashboard → redirect to login
-  if (!user && (pathname.startsWith('/contributor') || pathname.startsWith('/admin'))) {
-    return NextResponse.redirect(new URL('/auth/signin', req.url))
+  // ✅ Homepage redirect for logged users
+  if (user && pathname === '/') {
+    if (profileRole === 'admin') {
+      return NextResponse.redirect(new URL('/admin/dashboard', req.url))
+    }
+
+    if (profileRole === 'contributor') {
+      return NextResponse.redirect(new URL('/contributor/dashboard', req.url))
+    }
+
+    return NextResponse.redirect(new URL('/dashboard', req.url))
   }
 
   return res
 }
 
 export const config = {
-  matcher: [
-    '/',
-    '/auth/:path*',
-    '/dashboard/:path*',
-    '/contributor/:path*',
-    '/admin/:path*',
-  ],
+  matcher: ['/', '/auth/:path*', '/admin/:path*', '/contributor/:path*', '/dashboard/:path*', '/become-contributor'],
 }

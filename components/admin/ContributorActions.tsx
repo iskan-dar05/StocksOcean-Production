@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import toast from 'react-hot-toast'
 
 interface ContributorActionsProps {
   contributor: any
@@ -11,51 +12,43 @@ interface ContributorActionsProps {
 export default function ContributorActions({ contributor, levelDetails }: ContributorActionsProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [showApproveModal, setShowApproveModal] = useState(false)
   const [rejectReason, setRejectReason] = useState('')
   const [showRejectModal, setShowRejectModal] = useState(false)
   const [newLevel, setNewLevel] = useState(contributor.contributor_tier || 'bronze')
 
-  const handleApprove = async () => {
-    if (!confirm('Are you sure you want to approve this contributor?')) return
 
-    setLoading(true)
-    try {
-      const response = await fetch('/api/admin/contributor/approve', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: contributor.id }),
-      })
+  const approveContributor = async () => {
+  setLoading(true)
 
-      let data
-      try {
-        data = await response.json()
-      } catch (parseError) {
-        console.error('Failed to parse response:', parseError)
-        const text = await response.text()
-        console.error('Response text:', text)
-        alert(`Server error: ${response.status} ${response.statusText}. Please check the console for details.`)
-        return
-      }
+  try {
+    const response = await fetch('/api/admin/contributor/approve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: contributor.id }),
+    })
 
-      if (response.ok) {
-        router.refresh()
-        alert('Contributor approved successfully!')
-      } else {
-        console.error('Error response:', { status: response.status, data })
-        const errorMessage = data?.error || `Failed to approve contributor (${response.status})`
-        alert(errorMessage)
-      }
-    } catch (error: any) {
-      console.error('Error approving contributor:', error)
-      alert(`Error approving contributor: ${error.message || 'Network error. Please check your connection and try again.'}`)
-    } finally {
-      setLoading(false)
+    const data = await response.json()
+
+    if (response.ok) {
+      router.refresh()
+      toast.success('Contributor approved successfully!')
+    } else {
+      toast.error(data.error || 'Failed to approve contributor')
     }
+  } catch (error: any) {
+    toast.error(error.message || 'Network error')
+  } finally {
+    setLoading(false)
   }
+}
+
+
+
 
   const handleReject = async () => {
     if (!rejectReason.trim()) {
-      alert('Please provide a rejection reason')
+      toast.error('Please provide a rejection reason')
       return
     }
 
@@ -74,7 +67,7 @@ export default function ContributorActions({ contributor, levelDetails }: Contri
         console.error('Failed to parse response:', parseError)
         const text = await response.text()
         console.error('Response text:', text)
-        alert(`Server error: ${response.status} ${response.statusText}. Please check the console for details.`)
+        toast.error(`Server error: ${response.status} ${response.statusText}. Please check the console for details.`)
         return
       }
 
@@ -82,15 +75,15 @@ export default function ContributorActions({ contributor, levelDetails }: Contri
         router.refresh()
         setShowRejectModal(false)
         setRejectReason('')
-        alert('Contributor rejected successfully')
+        toast.success('Contributor rejected successfully')
       } else {
         console.error('Error response:', { status: response.status, data })
         const errorMessage = data?.error || `Failed to reject contributor (${response.status})`
-        alert(errorMessage)
+        toast.error(errorMessage)
       }
     } catch (error: any) {
       console.error('Error rejecting contributor:', error)
-      alert(`Error rejecting contributor: ${error.message || 'Network error. Please check your connection and try again.'}`)
+      toast.error(`Error rejecting contributor: ${error.message || 'Network error. Please check your connection and try again.'}`)
     } finally {
       setLoading(false)
     }
@@ -107,13 +100,13 @@ export default function ContributorActions({ contributor, levelDetails }: Contri
 
       if (response.ok) {
         router.refresh()
-        alert('Contributor level updated!')
+        toast.success('Contributor level updated!')
       } else {
         const data = await response.json()
-        alert(data.error || 'Failed to update level')
+        toast.error(data.error || 'Failed to update level')
       }
     } catch (error) {
-      alert('Error updating level')
+      toast.error('Error updating level')
     } finally {
       setLoading(false)
     }
@@ -128,7 +121,7 @@ export default function ContributorActions({ contributor, levelDetails }: Contri
         {contributor.role === 'user' && contributor.application_date && (
           <div className="space-y-3">
             <button
-              onClick={handleApprove}
+              onClick={()=>setShowApproveModal(true)}
               disabled={loading}
               className="w-full px-4 py-3 sm:py-2 text-base sm:text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 touch-manipulation active:scale-95"
             >
@@ -205,6 +198,42 @@ export default function ContributorActions({ contributor, levelDetails }: Contri
           </div>
         </div>
       )}
+      {/* Approve Modal */}
+{showApproveModal && (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md w-full">
+
+      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 text-center">
+        Confirm Approval
+      </h3>
+
+      <p className="text-sm text-gray-600 dark:text-gray-300 text-center mb-6">
+        Are you sure you want to approve this contributor?
+      </p>
+
+      <div className="flex flex-col sm:flex-row gap-3">
+        <button
+          onClick={async () => {
+            setShowApproveModal(false)
+            await approveContributor()
+          }}
+          disabled={loading}
+          className="flex-1 px-4 py-3 sm:py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition disabled:opacity-50"
+        >
+          Confirm Approve
+        </button>
+
+        <button
+          onClick={() => setShowApproveModal(false)}
+          className="flex-1 px-4 py-3 sm:py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+        >
+          Cancel
+        </button>
+      </div>
+
+    </div>
+  </div>
+)}
     </>
   )
 }

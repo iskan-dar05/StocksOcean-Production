@@ -2,10 +2,7 @@ import { createUserSupabase } from '@/lib/supabaseServer'
 import { supabaseAdmin } from '@/lib/supabaseAdmin' // استيراد العميل الذي أنشأته
 import { redirect } from 'next/navigation'
 
-/**
- * Check if the current user is an admin (for pages)
- * Redirects if not admin
- */
+
 export async function requireAdmin() {
   const supabase = await createUserSupabase()
 
@@ -18,7 +15,6 @@ export async function requireAdmin() {
 
   console.log('requireAdmin: Checking role for user:', session.user.id)
 
-  // Check if user has admin role
   const { data: profile, error } = await supabase
     .from('profiles')
     .select('role')
@@ -41,12 +37,8 @@ export async function requireAdmin() {
   return session
 }
 
-/**
- * Check if user is admin (for API routes)
- * Throws error if not admin - does not redirect
- */
+
 export async function requireAdminAPI() {
-  // 1. نستخدم عميل المستخدم (SSR) للتأكد من أنه مسجل دخول بالفعل
   const supabaseUser = await createUserSupabase()
   const { data: { session } } = await supabaseUser.auth.getSession()
 
@@ -54,8 +46,6 @@ export async function requireAdminAPI() {
     throw new Error('Unauthorized: Please log in')
   }
 
-  // 2. نستخدم عميل الـ Admin (Service Role) لجلب الدور (Role) بأمان
-  // هذا يضمن أنك ستجلب البيانات حتى لو كانت سياسات RLS تمنع المستخدم من قراءة بياناته الخاصة
   const { data: profile, error } = await supabaseAdmin
     .from('profiles')
     .select('role')
@@ -70,10 +60,7 @@ export async function requireAdminAPI() {
   return session
 }
 
-/**
- * Check if user is admin (non-redirecting version)
- * Returns true if admin, false otherwise
- */
+
 export async function isAdmin(): Promise<boolean> {
   const supabase = await createUserSupabase()
 

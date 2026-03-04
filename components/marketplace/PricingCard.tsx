@@ -46,7 +46,7 @@ export default function PricingCard({
       {(popular || discountPercent > 0) && (
         <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 flex items-center">
           {popular && (
-            <span className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-1.5 rounded-l-full text-xs font-semibold whitespace-nowrap">
+            <span className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-1.5 rounded-l-full text-xs font-semibold whitespace-nowrap">
               Most Popular
             </span>
           )}
@@ -132,8 +132,8 @@ export default function PricingCard({
             href={ctaLink}
             className={`block w-full text-center px-6 py-3 rounded-xl font-semibold transition-all ${
               popular
-                ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl'
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600'
+                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl'
+                : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
             }`}
           >
             {ctaText}

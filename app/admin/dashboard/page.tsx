@@ -204,7 +204,7 @@ export default function AdminDashboardPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard Overview</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Dashboard Overview</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">Welcome to the StocksOcean Admin Panel</p>
         </div>
         <div className="gap-2">
@@ -223,21 +223,21 @@ export default function AdminDashboardPage() {
           <Link
             key={title}
             href={href}
-            className={`group relative bg-white dark:bg-gray-800 rounded-xl p-4 lg:p-5 xl:p-6 border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300 ${
-              urgent ? 'ring-2 ring-yellow-400 dark:ring-yellow-500' : ''
+            className={`group relative bg-whitel rounded-xl p-4 lg:p-5 xl:p-6 border border-gray-200 hover:shadow-xl transition-all duration-300 ${
+              urgent ? 'ring-2 ring-yellow-400' : ''
             }`}
           >
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
-                <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">{title}</p>
-                <p className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1 lg:mb-2">{value}</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">{title}</p>
+                <p className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 lg:mb-2">{value}</p>
                 <p
                   className={`text-xs sm:text-sm font-medium ${
                     change.includes('+')
-                      ? 'text-green-600 dark:text-green-400'
+                      ? 'text-green-600'
                       : change.includes('Action')
-                      ? 'text-yellow-600 dark:text-yellow-400'
-                      : 'text-gray-600 dark:text-gray-400'
+                      ? 'text-yellow-600'
+                      : 'text-gray-600'
                   }`}
                 >
                   {change}
@@ -270,12 +270,12 @@ export default function AdminDashboardPage() {
               </Link>
             </div>
           </div>
-          <div className="divide-y divide-gray-200 dark:divide-gray-700">
+          <div className="divide-y divide-gray-200">
             {pendingContributors.map((contributor) => (
               <Link
                 key={contributor.id}
                 href={`/admin/contributors/${contributor.id}`}
-                className="block p-6 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                className="block p-6 hover:bg-gray-50 transition-colors"
               >
                 <div className="flex items-start gap-4">
                   {contributor.avatar_url ? (
@@ -291,19 +291,19 @@ export default function AdminDashboardPage() {
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold text-gray-900 dark:text-white truncate">
+                      <h3 className="font-semibold text-gray-900 truncate">
                         {contributor.username || 'Unknown User'}
                       </h3>
-                      <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300">
+                      <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
                         PENDING
                       </span>
                     </div>
                     {contributor.application_message && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-2">
+                      <p className="text-sm text-gray-600  line-clamp-2 mb-2">
                         {contributor.application_message}
                       </p>
                     )}
-                    <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-500">
+                    <div className="flex items-center gap-4 text-xs text-gray-500">
                       {contributor.application_date && (
                         <span>
                           Applied: {new Date(contributor.application_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
@@ -311,7 +311,7 @@ export default function AdminDashboardPage() {
                       )}
                       {contributor.portfolio_url && (
                         <span className="truncate max-w-xs">
-                          Portfolio: <span className="text-blue-600 dark:text-blue-400">{contributor.portfolio_url}</span>
+                          Portfolio: <span className="text-blue-600">{contributor.portfolio_url}</span>
                         </span>
                       )}
                     </div>
@@ -335,48 +335,48 @@ export default function AdminDashboardPage() {
       <DashboardCharts assetsByDay={assetsByDay} revenueByDay={revenueByDay} />
 
       {/* Quick Actions */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-4 lg:p-6 border border-gray-200 dark:border-gray-700">
-        <h2 className="text-lg lg:text-xl font-bold text-gray-900 dark:text-white mb-3 lg:mb-4">Quick Actions</h2>
+      <div className="bg-white rounded-xl p-4 lg:p-6 border border-gray-200">
+        <h2 className="text-lg lg:text-xl font-bold text-gray-900 mb-3 lg:mb-4">Quick Actions</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
           <Link
             href="/admin/assets?status=pending"
-            className="p-5 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-all group"
+            className="p-5 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all group"
           >
             <div className="flex items-center gap-3 mb-2">
               <div className="w-10 h-10 rounded-lg flex items-center justify-center group-hover:bg-blue-500 transition-colors">
-                <PhotoIcon className="w-full h-full text-white" />
+                <PhotoIcon className="w-full h-full text-gray-900 group-hover:text-white" />
               </div>
-              <div className="font-semibold text-gray-900 dark:text-white">Review Pending Assets</div>
+              <div className="font-semibold text-gray-900">Review Pending Assets</div>
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="text-sm text-gray-600">
               {stats.pendingAssets} asset{stats.pendingAssets !== 1 ? 's' : ''} pending review
             </div>
           </Link>
           <Link
             href="/admin/contributors?status=pending"
-            className="p-5 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-yellow-500 dark:hover:border-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/10 transition-all group"
+            className="p-5 border-2 border-gray-200 rounded-lg hover:border-yellow-500 hover:bg-yellow-50 transition-all group"
           >
             <div className="flex items-center gap-3 mb-2">
               <div className="w-10 h-10 rounded-lg flex items-center justify-center group-hover:bg-yellow-500 transition-colors">
-                <UserGroupIcon className="w-full h-full text-white" />
+                <UserGroupIcon className="w-full h-full text-gray-900 group-hover:text-white" />
               </div>
-              <div className="font-semibold text-gray-900 dark:text-white">Review Contributors</div>
+              <div className="font-semibold text-gray-900">Review Contributors</div>
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="text-sm text-gray-600">
               {stats.pendingContributors} application{stats.pendingContributors !== 1 ? 's' : ''} pending review
             </div>
           </Link>
           <Link
             href="/admin/assets/upload"
-            className="p-5 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-green-500 dark:hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900/10 transition-all group"
+            className="p-5 border-2 border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all group"
           >
             <div className="flex items-center gap-3 mb-2">
               <div className="w-10 h-10 rounded-lg flex items-center justify-center group-hover:bg-green-500 transition-colors">
-                <ArrowUpTrayIcon className="w-full h-full text-white" />
+                <ArrowUpTrayIcon className="w-full h-full text-gray-900 group-hover:text-white" />
               </div>
-              <div className="font-semibold text-gray-900 dark:text-white">Upload New Asset</div>
+              <div className="font-semibold text-gray-900">Upload New Asset</div>
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">Add demo or featured asset</div>
+            <div className="text-sm text-gray-600">Add demo or featured asset</div>
           </Link>
         </div>
       </div>

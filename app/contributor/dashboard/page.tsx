@@ -180,7 +180,7 @@ export default function ContributorDashboardPage() {
   // Show approval pending message
   if (!loading && profile && profile.role !== 'contributor' && profile.role !== 'admin') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="min-h-screen bg-gray-50">
         <Header />
         <main className="container mx-auto px-4 py-16">
           <div className="max-w-2xl mx-auto text-center">
@@ -206,7 +206,7 @@ export default function ContributorDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-gray-50">
       <Header />
 
       <main className="container-fluid py-4 sm:py-6 md:py-8">

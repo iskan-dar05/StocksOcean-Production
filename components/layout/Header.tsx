@@ -6,8 +6,11 @@ import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { supabase } from '@/lib/supabaseClient'
 import NotificationBell from '@/components/notifications/NotificationBell'
+import Image from 'next/image'
 
 export default function Header() {
+
+  
   const pathname = usePathname()
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -60,159 +63,50 @@ export default function Header() {
     }
   }, [isMobileMenuOpen])
 
-  useEffect(() => {
-    // Check if user is logged in (non-blocking)
-    const checkAuth = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser()
-        setUser(user)
-        setLoading(false) // Set loading to false immediately so header renders
-        
-        // Check if user is an approved contributor or admin (non-blocking, in background)
-        if (user) {
-          const { data, error } = await supabase
+ useEffect(() => {
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange((_event, session) => {
+    setUser(session?.user ?? null)
+
+    if (!session?.user) {
+      setLoading(false)
+      setUsername('')
+      setAvatarUrl('')
+      setIsAdmin(false)
+      setIsApprovedContributor(false)
+      return
+    }
+
+    if (session?.user) {
+      ;(async () => {
+        try {
+          const { data: profileData, error: profileError } = await supabase
             .from('profiles')
             .select('role, username, avatar_url')
-            .eq('id', user.id)
+            .eq('id', session.user.id)
             .maybeSingle()
-            
-          if (error) {
-            // PGRST116 means "no rows found" - this is normal for new users
-            if (error.code === 'PGRST116') {
-              // Profile doesn't exist yet - this is normal, don't log as error
-              setIsApprovedContributor(false)
-              setIsAdmin(false)
-              setUsername(user.email?.split('@')[0] || 'User')
-            } else {
-              // Other errors - log but don't fail
-              console.log('Profile fetch error:', error)
-              setIsApprovedContributor(false)
-              setIsAdmin(false)
-              setUsername(user.email?.split('@')[0] || 'User')
-            }
-          } else if (data) {
-            const profile = data as any
-            // Note: contributor_status column doesn't exist in profiles table
-            setIsApprovedContributor(false)
-            // Check role - handle both string and case variations
-            const userRole = String(profile.role || '').toLowerCase().trim()
-            const isUserAdmin = userRole === 'admin'
-            const isUserContributor = userRole === 'contributor'
-            setIsAdmin(isUserAdmin)
-            setIsApprovedContributor(isUserContributor)
-            console.log('🔍 User role check:', { 
-              userId: user.id, 
-              role: profile.role,
-              roleLowercase: userRole,
-              isAdmin: isUserAdmin,
-              profile: profile,
-              willShowAdminLink: isUserAdmin
-            })
-            if (isUserAdmin) {
-              console.log('✅ Admin role detected! Admin Panel link should be visible.')
-            } else {
-              console.log('❌ Not admin. Current role:', profile.role, 'Expected: admin')
-            }
-            setUsername(profile.username || user.email?.split('@')[0] || 'User')
-            setAvatarUrl(profile.avatar_url || '')
-          } else {
-            setIsApprovedContributor(false)
-            setIsAdmin(false)
-            setUsername(user.email?.split('@')[0] || 'User')
+
+
+          if (profileData) {
+            setIsAdmin(profileData.role === 'admin')
+            setIsApprovedContributor(profileData.role === 'contributor')
+            setUsername(profileData.username)
+            setAvatarUrl(profileData.avatar_url)
+            setLoading(false)
           }
-        } else {
-          setIsApprovedContributor(false)
-          setIsAdmin(false)
-          setUsername('')
-          setAvatarUrl('')
+        } catch(error) {
+          console.log("Header Error: ", error)
+          setLoading(false)
         }
-      } catch (error) {
-        console.error('Auth check error:', error)
-        setLoading(false)
-        setIsApprovedContributor(false)
-        setIsAdmin(false)
-      }
+      })()
     }
-    
-    checkAuth()
+  })
 
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-      
-      // Check contributor status and admin role when auth changes (non-blocking)
-      if (session?.user) {
-        (async () => {
-          try {
-            const { data: profileData, error: profileError } = await supabase
-              .from('profiles')
-              .select('role, username, avatar_url')
-              .eq('id', session.user.id)
-              .maybeSingle()
-            
-            if (profileError) {
-              // PGRST116 means "no rows found" - this is normal for new users
-              if (profileError.code === 'PGRST116') {
-                // Profile doesn't exist yet - this is normal, don't log as error
-                setIsApprovedContributor(false)
-                setIsAdmin(false)
-                setUsername(session.user.email?.split('@')[0] || 'User')
-              } else {
-                // Other errors - log but don't fail
-                console.log('Profile fetch error (auth change):', profileError)
-                setIsApprovedContributor(false)
-                setIsAdmin(false)
-                setUsername(session.user.email?.split('@')[0] || 'User')
-              }
-            } else if (profileData) {
-              const profile = profileData as any
-              // Note: contributor_status doesn't exist in this schema
-              setIsApprovedContributor(false) // Set to false for now since we don't have contributor_status
-              // Check role - handle both string and case variations
-              const userRole = String(profile.role || '').toLowerCase().trim()
-              const isUserAdmin = userRole === 'admin'
-              const isUserContributor = userRole === 'contributor'
-              setIsAdmin(isUserAdmin)
-              setIsApprovedContributor(isUserContributor)
-              console.log('🔍 User role check (auth change):', { 
-                userId: session.user.id,
-                role: profile.role,
-                roleLowercase: userRole,
-                isAdmin: isUserAdmin,
-                profile: profile,
-                willShowAdminLink: isUserAdmin
-              })
-              if (isUserAdmin) {
-                console.log('✅ Admin role detected! Admin Panel link should be visible.')
-              } else {
-                console.log('❌ Not admin. Current role:', profile.role, 'Expected: admin')
-              }
-              setUsername(profile.username || session.user.email?.split('@')[0] || 'User')
-              setAvatarUrl(profile.avatar_url || '')
-            } else {
-              setIsApprovedContributor(false)
-              setIsAdmin(false)
-              setUsername(session.user.email?.split('@')[0] || 'User')
-            }
-          } catch (err: any) {
-            console.error('Error fetching profile:', err)
-            setIsApprovedContributor(false)
-            setIsAdmin(false)
-            setUsername(session.user.email?.split('@')[0] || 'User')
-          }
-        })()
-      } else {
-        setIsApprovedContributor(false)
-        setIsAdmin(false)
-        setUsername('')
-        setAvatarUrl('')
-      }
-    })
-
-    return () => subscription.unsubscribe()
-  }, [])
+  return () => {
+    subscription.unsubscribe()
+  }
+}, [])
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -301,7 +195,7 @@ export default function Header() {
     <>
       {/* Backdrop */}
       <div 
-        className="lg:hidden fixed inset-0 bg-black/50 z-[100] mobile-menu-backdrop pointer-events-auto"
+        className="lg:hidden fixed inset-0 z-[100] mobile-menu-backdrop pointer-events-auto"
         onClick={(e) => {
           e.preventDefault()
           e.stopPropagation()
@@ -315,7 +209,7 @@ export default function Header() {
       />
       {/* Menu Content */}
       <div 
-        className="lg:hidden fixed left-0 right-0 bottom-0 bg-white dark:bg-gray-900 z-[110] overflow-y-auto overscroll-contain" 
+        className="lg:hidden fixed left-0 right-0 bottom-0 z-[110] overflow-y-auto overscroll-contain" 
         style={{ top: `${headerHeight}px` }}
         data-mobile-menu
         onClick={(e) => {
@@ -325,14 +219,14 @@ export default function Header() {
           e.stopPropagation()
         }}
       >
-        <div className="w-full max-w-[100vw] mx-auto px-3 xs:px-4 sm:px-5 md:px-6 py-4 xs:py-5 sm:py-6 md:py-8">
+        <div className="w-full max-w-[100vw] bg-white mx-auto px-3 xs:px-4 sm:px-5 md:px-6 py-4 xs:py-5 sm:py-6 md:py-8">
           {/* Mobile Search in Menu */}
           <div className="mb-4 xs:mb-5 sm:mb-6 md:mb-8">
             <div className="relative w-full">
               <input
                 type="text"
                 placeholder="Search assets..."
-                className="w-full px-4 xs:px-5 sm:px-5 md:px-6 py-3 xs:py-3.5 sm:py-4 pl-10 xs:pl-11 sm:pl-12 md:pl-14 pr-4 text-sm xs:text-base sm:text-lg border-2 border-gray-300 dark:border-gray-600 rounded-lg xs:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all touch-manipulation min-h-[44px] xs:min-h-[48px]"
+                className="w-full px-4 xs:px-5 sm:px-5 md:px-6 py-3 xs:py-3.5 sm:py-4 pl-10 xs:pl-11 sm:pl-12 md:pl-14 pr-4 text-sm xs:text-base sm:text-lg border-1 border-gray-200 rounded-lg xs:rounded-xl bg-white text-primary placeholder-gray-400 focus:ring-2 focus:ring-header focus:border-header transition-all touch-manipulation min-h-[44px] xs:min-h-[48px]"
                 onKeyPress={(e) => {
                   if (e.key === 'Enter') {
                     const query = (e.target as HTMLInputElement).value
@@ -365,7 +259,7 @@ export default function Header() {
               className={`px-4 xs:px-5 sm:px-5 md:px-6 py-2.5 xs:py-3 sm:py-3.5 md:py-4 rounded-lg xs:rounded-xl text-sm xs:text-base sm:text-lg font-medium transition-colors touch-manipulation min-h-[44px] xs:min-h-[48px] flex items-center ${
                 isActive('/browse')
                   ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                  : 'hover:text-primary hover:bg-gray-100'
               }`}
             >
               Browse
@@ -376,7 +270,7 @@ export default function Header() {
               className={`px-4 xs:px-5 sm:px-5 md:px-6 py-2.5 xs:py-3 sm:py-3.5 md:py-4 rounded-lg xs:rounded-xl text-sm xs:text-base sm:text-lg font-medium transition-colors touch-manipulation min-h-[44px] xs:min-h-[48px] flex items-center ${
                 isActive('/pricing')
                   ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                  : 'hover:text-primary hover:bg-gray-100'
               }`}
             >
               Pricing
@@ -387,7 +281,7 @@ export default function Header() {
               className={`px-4 xs:px-5 sm:px-5 md:px-6 py-2.5 xs:py-3 sm:py-3.5 md:py-4 rounded-lg xs:rounded-xl text-sm xs:text-base sm:text-lg font-medium transition-colors touch-manipulation min-h-[44px] xs:min-h-[48px] flex items-center ${
                 isActive('/about')
                   ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                  : 'hover:text-primary hover:bg-gray-100'
               }`}
             >
               About
@@ -398,7 +292,7 @@ export default function Header() {
               className={`px-4 xs:px-5 sm:px-5 md:px-6 py-2.5 xs:py-3 sm:py-3.5 md:py-4 rounded-lg xs:rounded-xl text-sm xs:text-base sm:text-lg font-medium transition-colors touch-manipulation min-h-[44px] xs:min-h-[48px] flex items-center ${
                 isActive('/help')
                   ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                  : 'hover:text-primary hover:bg-gray-100'
               }`}
             >
               Help
@@ -410,7 +304,7 @@ export default function Header() {
                 className={`px-4 xs:px-5 sm:px-5 md:px-6 py-2.5 xs:py-3 sm:py-3.5 md:py-4 rounded-lg xs:rounded-xl text-sm xs:text-base sm:text-lg font-medium transition-colors touch-manipulation min-h-[44px] xs:min-h-[48px] flex items-center ${
                   isActive('/become-contributor')
                     ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    : 'hover:text-primary hover:bg-gray-100'
                 }`}
               >
                 Sell Assets
@@ -469,7 +363,7 @@ export default function Header() {
                 <Link
                   href="/favorites"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-2.5 xs:gap-3 sm:gap-4 px-4 xs:px-5 sm:px-5 md:px-6 py-2.5 xs:py-3 sm:py-3.5 md:py-4 rounded-lg xs:rounded-xl text-sm xs:text-base sm:text-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors touch-manipulation min-h-[44px] xs:min-h-[48px]"
+                  className="flex items-center gap-2.5 xs:gap-3 sm:gap-4 px-4 xs:px-5 sm:px-5 md:px-6 py-2.5 xs:py-3 sm:py-3.5 md:py-4 rounded-lg xs:rounded-xl text-sm xs:text-base sm:text-lg font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-700 transition-colors touch-manipulation min-h-[44px] xs:min-h-[48px]"
                 >
                   <svg className="w-4 h-4 xs:w-5 xs:h-5 sm:w-6 sm:h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
@@ -479,7 +373,7 @@ export default function Header() {
                 <Link
                   href="/profile"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-2.5 xs:gap-3 sm:gap-4 px-4 xs:px-5 sm:px-5 md:px-6 py-2.5 xs:py-3 sm:py-3.5 md:py-4 rounded-lg xs:rounded-xl text-sm xs:text-base sm:text-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors touch-manipulation min-h-[44px] xs:min-h-[48px]"
+                  className="flex items-center gap-2.5 xs:gap-3 sm:gap-4 px-4 xs:px-5 sm:px-5 md:px-6 py-2.5 xs:py-3 sm:py-3.5 md:py-4 rounded-lg xs:rounded-xl text-sm xs:text-base sm:text-lg font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-700 transition-colors touch-manipulation min-h-[44px] xs:min-h-[48px]"
                 >
                   <svg className="w-4 h-4 xs:w-5 xs:h-5 sm:w-6 sm:h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -532,259 +426,36 @@ export default function Header() {
 
   return (
     <>
-      <header ref={headerRef} className="sticky top-0 z-[130] bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 shadow-sm w-full">
-        <nav className="w-full max-w-[100vw] mx-auto px-2 xs:px-3 sm:px-4 md:px-5 lg:px-6 py-2.5 xs:py-3 sm:py-3.5 md:py-4 relative z-[130]">
-          <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-2.5 md:gap-3 sm:justify-between relative w-full min-w-0 z-[130]">
-          {/* Mobile Menu Button - Hidden on Desktop */}  
-          <div className="flex items-center gap-3">
-          <button
-            ref={menuButtonRef}
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              toggleMobileMenu()
-            }}
-            onMouseDown={(e) => {
-              e.stopPropagation()
-            }}
-            onTouchStart={(e) => {
-              e.stopPropagation()
-            }}
-            data-mobile-menu-button
-            className="lg:hidden p-1.5 xs:p-2 sm:p-2.5 -ml-0.5 xs:-ml-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors active:scale-95 touch-manipulation z-[140] flex-shrink-0 relative cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center pointer-events-auto"
-            style={{ zIndex: 140, position: 'relative', pointerEvents: 'auto' }}
-            aria-label="Toggle menu"
-            aria-expanded={isMobileMenuOpen}
-            type="button"
-          >
-            <svg
-              className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 text-gray-900 dark:text-white flex-shrink-0"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d={isMobileMenuOpen ? 'M6 18L18 6M6 6l12 12' : 'M4 6h16M4 12h16M4 18h16'}
-              />
-            </svg>
-          </button>
-
-        
-
-        
-
-          
-          {/* Logo - Hidden when search is focused on mobile, always visible on desktop */}
-          <div className={`flex items-center gap-1.5 xs:gap-2 sm:gap-2.5 md:gap-3 flex-shrink-0 transition-all duration-300 min-w-0 ${
-            isSearchFocused 
-              ? 'lg:opacity-100 lg:w-auto lg:max-w-none opacity-0 w-0 overflow-hidden max-w-0' 
-              : 'opacity-100 max-w-[120px] xs:max-w-[140px] sm:max-w-[160px] md:max-w-none lg:max-w-none'
-          }`}>
-            <Link
-              href="/"
-              className="text-base xs:text-lg sm:text-xl md:text-xl lg:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent hover:from-blue-700 hover:to-purple-700 transition-all whitespace-nowrap truncate"
-            >
-              StocksOcean
-            </Link>
-          </div>
-
-          </div>
-          
-
-          {/* Mobile/Tablet Search Bar - Always Visible */}
-
-          <div className="lg:hidden flex items-center justify-end gap-3 w-full">
-          
-          <div className={`lg:hidden relative transition-all duration-300 ease-in-out min-w-0 flex-1 ${
-            isSearchFocused 
-              ? 'flex-1 min-w-0 max-w-none' 
-              : 'max-w-[calc(100%-180px)] xs:max-w-[calc(100%-200px)] sm:max-w-[calc(100%-240px)] md:max-w-[320px]'
-          }`}>
-            <div ref={searchInputRef} className='relative w-full flex items-center min-w-0'>
-              <input
-              
-              type="text"
-              placeholder="Search..."
-              className={`w-full min-w-0 px-2.5 xs:px-3 sm:px-4 md:px-5 py-2 xs:py-2.5 sm:py-3 pl-8 xs:pl-9 sm:pl-10 md:pl-11 pr-3 xs:pr-4 text-xs xs:text-sm sm:text-base border-2 border-gray-300 dark:border-gray-600 rounded-lg xs:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300
-                ${isSearchFocused
-                  ? 'block px-3 xs:px-4 sm:px-5 md:px-6 py-2.5 xs:py-3 sm:py-3.5 md:py-4 text-sm xs:text-base sm:text-lg md:text-lg shadow-lg border-blue-500 pr-8 xs:pr-10 sm:pr-12'
-                  : 'hidden'
-                }`}
-              onFocus={() => setIsSearchFocused(true)}
-              onBlur={() => setIsSearchFocused(false)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  const query = (e.target as HTMLInputElement).value
-                  setIsSearchFocused(false)
-                  window.location.href = `/browse?search=${encodeURIComponent(query)}`
-                }
-              }}
+      <header ref={headerRef} className="sticky top-0 z-[130] backdrop-blur-md border-b border-gray-200 shadow-sm w-full">
+        <nav className="hidden lg:flex items-center justify-between w-full max-w-[100vw] bg-background mx-auto px-2 xs:px-3 sm:px-4 md:px-5 lg:px-6 lg:min-h-[80px] relative z-[150]">
+          <div>
+            <img 
+              src="/logo.png" 
+              className="w-[170px]" 
+              alt="logo" 
             />
-
-             <svg
-              className={`${isSearchFocused ? 'absolute left-[10px] top-1/2 -translate-y-1/2 w-5 h-5 cursor-pointer text-gray-500' : 'absolute right-0 top-1/2 -translate-y-1/2 w-5 h-5 cursor-pointer text-white'}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              onClick={() => {
-                setIsSearchFocused(true)
-                searchInputRef.current?.focus() // focus input when SVG clicked
-              }}
-            >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-              {/* Cancel Button - Only visible when focused */}
-              {isSearchFocused && (
-                <button
-                  onClick={() => {
-                    setIsSearchFocused(false)
-                    const input = document.querySelector('input[type="text"]') as HTMLInputElement
-                    if (input) input.blur()
-                  }}
-                  className="absolute right-1.5 xs:right-2 sm:right-2.5 md:right-3 top-1/2 -translate-y-1/2 px-1.5 xs:px-2 sm:px-2.5 py-1 text-xs xs:text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors touch-manipulation min-h-[32px] flex items-center"
-                >
-                  Cancel
-                </button>
-              )}
-            </div>
           </div>
-
-          {/* Mobile/Tablet User Avatar/Button */}
-          <div className={`lg:hidden flex-shrink-0 transition-all duration-300 min-w-0 relative z-[140] ${
-            isSearchFocused ? 'opacity-0 w-0 overflow-hidden max-w-0' : 'opacity-100'
-          }`}>
-            {loading ? (
-              <div className="w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 border-2 border-gray-300 dark:border-gray-600 border-t-blue-600 rounded-full animate-spin flex-shrink-0"></div>
-            ) : user ? (
-              <div className="flex items-center gap-1.5 xs:gap-2 min-w-0">
-                <div className="flex-shrink-0">
-                  <NotificationBell />
-                </div>
-                <div className="flex items-center justify-center flex-shrink-0">
-                  {avatarUrl ? (
-                    <img
-                      src={avatarUrl}
-                      alt={username}
-                      className="w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 rounded-full object-cover border-2 border-gray-300 dark:border-gray-600 flex-shrink-0"
-                    />
-                  ) : (
-                    <div className="w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center text-white font-semibold text-xs xs:text-sm sm:text-base border-2 border-gray-300 dark:border-gray-600 flex-shrink-0">
-                      {username.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <Link
-                href="/auth/signin"
-                className="px-2 xs:px-2.5 sm:px-3 md:px-4 py-1.5 xs:py-2 sm:py-2 text-xs xs:text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors whitespace-nowrap touch-manipulation min-h-[32px] xs:min-h-[36px] sm:min-h-[40px] flex items-center"
-              >
-                Sign In
-              </Link>
-            )}
-          </div>
-        </div>
-
-          {/* Search Bar - Desktop */}
-          <div className="hidden lg:flex flex-1 w-full mx-4">
-            <div className="relative w-full">
-              <input
-                type="text"
-                placeholder="Search assets..."
-                className="w-full px-4 py-2.5 pl-11 pr-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm xl:text-base"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    const query = (e.target as HTMLInputElement).value
-                    window.location.href = `/browse?search=${encodeURIComponent(query)}`
-                  }
-                }}
-              />
-              <svg
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none flex-shrink-0"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-            </div>
-          </div>
-
-          {/* Navigation Links */}
-          <div className="hidden lg:flex items-center gap-2 xl:gap-3 2xl:gap-4 flex-shrink-0">
-            <Link
-              href="/browse"
-              className={`px-2.5 xl:px-3 2xl:px-4 py-2 rounded-lg text-sm xl:text-base font-medium transition-colors whitespace-nowrap touch-manipulation ${
-                isActive('/browse')
-                  ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-              }`}
-            >
-              Browse
-            </Link>
-            <Link
-              href="/pricing"
-              className={`px-2.5 xl:px-3 2xl:px-4 py-2 rounded-lg text-sm xl:text-base font-medium transition-colors whitespace-nowrap touch-manipulation ${
-                isActive('/pricing')
-                  ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-              }`}
-            >
-              Pricing
-            </Link>
-            <Link
-              href="/about"
-              className={`px-2.5 xl:px-3 2xl:px-4 py-2 rounded-lg text-sm xl:text-base font-medium transition-colors whitespace-nowrap touch-manipulation ${
-                isActive('/about')
-                  ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-              }`}
-            >
-              About
-            </Link>
-            <Link
-              href="/help"
-              className={`px-2.5 xl:px-3 2xl:px-4 py-2 rounded-lg text-sm xl:text-base font-medium transition-colors whitespace-nowrap touch-manipulation ${
-                isActive('/help')
-                  ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-              }`}
-            >
-              Help
-            </Link>
-            {!isApprovedContributor && (
-              <Link
-                href="/become-contributor"
-                className={`px-2.5 xl:px-3 2xl:px-4 py-2 rounded-lg text-sm xl:text-base font-medium transition-colors whitespace-nowrap touch-manipulation ${
-                  isActive('/become-contributor')
-                    ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-                }`}
-              >
-                Sell Assets
-              </Link>
-            )}
-          </div>
-
-          {/* Auth Buttons - Desktop */}
+           {/* Auth Buttons - Desktop */}
           <div className="hidden lg:flex items-center gap-2 xl:gap-3 flex-shrink-0">
             {loading ? (
               <div className="w-8 h-8 xl:w-9 xl:h-9 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin flex-shrink-0"></div>
             ) : user ? (
               <>
+                <Link href="/favorites" className="p-1">
+                  <svg
+                    className="w-6 h-6 text-gray-700 hover:text-red-500 transition"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 016.364 0 4.5 4.5 0 010 6.364L12 20.364 4.318 12.682a4.5 4.5 0 010-6.364z"
+                    />
+                  </svg>
+                </Link>
                 <div data-notification-bell className="flex-shrink-0 relative z-[140]">
                   <NotificationBell />
                 </div>
@@ -814,7 +485,7 @@ export default function Header() {
                 {/* Dropdown Menu */}
                 {isDropdownOpen && (
                   <div 
-                    className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 "
+                    className="absolute z-[200] right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 "
                     onClick={(e) => e.stopPropagation()}
                   >
                     {/* Username */}
@@ -835,7 +506,7 @@ export default function Header() {
                           e.stopPropagation()
                           setIsDropdownOpen(false)
                         }}
-                        className={`flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                        className={`flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-secondary transition-colors ${
                           isActive('/favorites') ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300' : ''
                         }`}
                       >
@@ -860,7 +531,7 @@ export default function Header() {
                           e.stopPropagation()
                           setIsDropdownOpen(false)
                         }}
-                        className={`flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                        className={`flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-secondary transition-colors ${
                           isActive('/profile') ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300' : ''
                         }`}
                       >
@@ -961,22 +632,298 @@ export default function Header() {
                 </div>
               </>
             ) : (
-              <>
+              <div className="flex items-center gap-1">
                 <Link
                   href="/auth/signin"
-                  className="px-3 xl:px-4 py-2 text-sm xl:text-base font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors whitespace-nowrap touch-manipulation min-h-[36px] xl:min-h-[40px] flex items-center"
+                  className={`py-2 text-sm xl:text-base font-semibold transition-colors whitespace-nowrap min-h-[36px] xl:min-h-[40px] flex items-center ${
+                    pathname === '/auth/signin'
+                      ? 'text-header cursor-default pointer-events-none'
+                      : 'text-primary hover:text-header'
+                  }`}
+                  aria-current={pathname === '/auth/signin' ? 'page' : undefined}
                 >
-                  Sign In
+                  LOG IN
                 </Link>
+
+                <span className="text-primary text-lg font-medium">/</span>
+
                 <Link
                   href="/auth/signup"
-                  className="px-3 xl:px-4 py-2 text-sm xl:text-base bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-md hover:shadow-lg whitespace-nowrap touch-manipulation min-h-[36px] xl:min-h-[40px] flex items-center"
+                  className={`py-2 text-sm xl:text-base font-semibold transition-colors whitespace-nowrap min-h-[36px] xl:min-h-[40px] flex items-center ${
+                    pathname === '/auth/signup'
+                      ? 'text-header cursor-default pointer-events-none'
+                      : 'text-primary hover:text-header'
+                  }`}
+                  aria-current={pathname === '/auth/signup' ? 'page' : undefined}
                 >
-                  Sign Up
+                  REGISTER
                 </Link>
-              </>
+              </div>
             )}
           </div>
+          
+
+        </nav>
+        <nav className="w-full max-w-[100vw] bg-background mx-auto px-2 xs:px-3 sm:px-4 md:px-5 bg-header lg:px-6 py-2.5 xs:py-3 sm:py-3.5 md:py-4 relative z-[100]">
+          <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-2.5 md:gap-3 sm:justify-between relative w-full min-w-0 z-[130]">
+          {/* Mobile Menu Button - Hidden on Desktop */}  
+          <div className="flex items-center gap-3">
+          <button
+            ref={menuButtonRef}
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              toggleMobileMenu()
+            }}
+            onMouseDown={(e) => {
+              e.stopPropagation()
+            }}
+            onTouchStart={(e) => {
+              e.stopPropagation()
+            }}
+            data-mobile-menu-button
+            className="lg:hidden p-1.5 xs:p-2 sm:p-2.5 -ml-0.5 xs:-ml-1 rounded-lg transition-colors active:scale-95 touch-manipulation z-[140] flex-shrink-0 relative cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center pointer-events-auto"
+            style={{ zIndex: 140, position: 'relative', pointerEvents: 'auto' }}
+            aria-label="Toggle menu"
+            aria-expanded={isMobileMenuOpen}
+            type="button"
+          >
+            <svg
+              className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 text-white dark:text-white flex-shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d={isMobileMenuOpen ? 'M6 18L18 6M6 6l12 12' : 'M4 6h16M4 12h16M4 18h16'}
+              />
+            </svg>
+          </button>
+
+        
+
+        
+
+          
+          {/* Logo - Hidden when search is focused on mobile, always visible on desktop */}
+          <div className={`flex items-center gap-1.5 xs:gap-2 sm:gap-2.5 md:gap-3 flex-shrink-0 transition-all duration-300 min-w-0 ${
+            isSearchFocused 
+              ? 'lg:opacity-100 lg:w-auto lg:max-w-none opacity-0 w-0 overflow-hidden max-w-0' 
+              : 'opacity-100 max-w-[120px] xs:max-w-[140px] sm:max-w-[160px] md:max-w-none lg:max-w-none'
+          }`}>
+            <Link
+              href="/"
+              className="text-base xs:text-lg sm:text-xl md:text-xl lg:text-2xl font-bold text-white text-transparent transition-all whitespace-nowrap truncate"
+            >
+              StocksOcean
+            </Link>
+          </div>
+
+          </div>
+          
+
+          {/* Mobile/Tablet Search Bar - Always Visible */}
+
+          <div className="lg:hidden flex items-center justify-end gap-3 w-full">
+          
+          <div className={`lg:hidden relative transition-all duration-300 ease-in-out min-w-0 flex-1 ${
+            isSearchFocused 
+              ? 'flex-1 min-w-0 max-w-none' 
+              : 'max-w-[calc(100%-180px)] xs:max-w-[calc(100%-200px)] sm:max-w-[calc(100%-240px)] md:max-w-[320px]'
+          }`}>
+            <div ref={searchInputRef} className='relative w-full flex items-center min-w-0'>
+              <input
+              
+              type="text"
+              placeholder="Search..."
+              className={`w-full min-w-0 px-2.5 xs:px-3 sm:px-4 md:px-5 py-2 xs:py-2.5 sm:py-3 pl-8 xs:pl-9 sm:pl-10 md:pl-11 pr-3 xs:pr-4 text-xs xs:text-sm sm:text-base border-2 border-gray-300 dark:border-gray-600 rounded-lg xs:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300
+                ${isSearchFocused
+                  ? 'block px-3 xs:px-4 sm:px-5 md:px-6 py-2.5 xs:py-3 sm:py-3.5 md:py-4 text-sm xs:text-base sm:text-lg md:text-lg shadow-lg border-blue-500 pr-8 xs:pr-10 sm:pr-12'
+                  : 'hidden'
+                }`}
+              onFocus={() => setIsSearchFocused(true)}
+              onBlur={() => setIsSearchFocused(false)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  const query = (e.target as HTMLInputElement).value
+                  setIsSearchFocused(false)
+                  window.location.href = `/browse?search=${encodeURIComponent(query)}`
+                }
+              }}
+            />
+
+             <svg
+              className={`${isSearchFocused ? 'absolute left-[10px] top-1/2 -translate-y-1/2 w-5 h-5 cursor-pointer text-gray-500' : 'absolute right-0 top-1/2 -translate-y-1/2 w-5 h-5 cursor-pointer text-white'}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              onClick={() => {
+                setIsSearchFocused(true)
+                searchInputRef.current?.focus() // focus input when SVG clicked
+              }}
+            >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+              {/* Cancel Button - Only visible when focused */}
+              {isSearchFocused && (
+                <button
+                  onClick={() => {
+                    setIsSearchFocused(false)
+                    const input = document.querySelector('input[type="text"]') as HTMLInputElement
+                    if (input) input.blur()
+                  }}
+                  className="absolute right-1.5 xs:right-2 sm:right-2.5 md:right-3 top-1/2 -translate-y-1/2 px-1.5 xs:px-2 sm:px-2.5 py-1 text-xs xs:text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors touch-manipulation min-h-[32px] flex items-center"
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Mobile/Tablet User Avatar/Button */}
+          <div className={`lg:hidden flex-shrink-0 transition-all duration-300 min-w-0 relative z-[140] ${
+            isSearchFocused ? 'opacity-0 w-0 overflow-hidden max-w-0' : 'opacity-100'
+          }`}>
+            {loading ? (
+              <div className="w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 border-2 border-gray-300 dark:border-gray-600 border-t-blue-600 rounded-full animate-spin flex-shrink-0"></div>
+            ) : user ? (
+              <div className="flex items-center gap-1.5 xs:gap-2 min-w-0">
+                <div className="flex-shrink-0">
+                  <NotificationBell />
+                </div>
+                <div className="flex items-center justify-center flex-shrink-0">
+                  {avatarUrl ? (
+                    <img
+                      src={avatarUrl}
+                      alt={username}
+                      className="w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 rounded-full object-cover border-2 border-gray-300 dark:border-gray-600 flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center text-white font-semibold text-xs xs:text-sm sm:text-base border-2 border-gray-300 dark:border-gray-600 flex-shrink-0">
+                      {username.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+            <></>
+            )}
+          </div>
+        </div>
+
+          {/* Search Bar - Desktop */}
+          <div className="hidden lg:flex flex-1 w-full mx-4">
+            <div className="relative w-full">
+              <input
+                type="text"
+                placeholder="Search assets..."
+                className="
+                w-full px-4 py-2.5 pl-11 pr-4
+                border border-gray-200
+                rounded-lg
+                bg-white
+                text-gray-900
+                placeholder-gray-400
+                text-sm xl:text-base
+                transition-all duration-300
+
+                focus:outline-none
+                focus:border-none
+                focus:ring-4
+                focus:ring-gray-400
+                focus:shadow-medium"                
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    const query = (e.target as HTMLInputElement).value
+                    window.location.href = `/browse?search=${encodeURIComponent(query)}`
+                  }
+                }}
+              />
+              <svg
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </div>
+          </div>
+
+          {/* Navigation Links */}
+          <div className="hidden lg:flex items-center gap-2 xl:gap-3 2xl:gap-4 flex-shrink-0">
+            <Link
+              href="/browse"
+              className={`px-2.5 xl:px-3 2xl:px-4 py-2 hover:bg-white hover:text-header rounded-lg text-sm xl:text-base text-white font-medium transition-colors whitespace-nowrap touch-manipulation ${
+                isActive('/browse')
+                  ? '!text-header bg-white'
+                  : 'text-primary'
+              }`}
+            >
+              Browse
+            </Link>
+            <Link
+              href="/pricing"
+              className={`px-2.5 xl:px-3 2xl:px-4 py-2 hover:bg-white hover:text-header rounded-lg text-sm xl:text-base text-white font-medium transition-colors whitespace-nowrap touch-manipulation ${
+                isActive('/pricing')
+                  ? '!text-header bg-white'
+                  : 'text-primary'
+              }`}
+            >
+              Pricing
+            </Link>
+            <Link
+              href="/about"
+              className={`px-2.5 xl:px-3 2xl:px-4 py-2 hover:bg-white hover:text-header rounded-lg text-sm xl:text-base text-white font-medium transition-colors whitespace-nowrap touch-manipulation ${
+
+                isActive('/about')
+                  ? '!text-header bg-white'
+                  : 'text-primary'
+              }`}
+            >
+              About
+            </Link>
+            <Link
+              href="/help"
+              className={`px-2.5 xl:px-3 2xl:px-4 py-2 hover:bg-white hover:text-header rounded-lg text-sm xl:text-base text-white font-medium transition-colors whitespace-nowrap touch-manipulation ${
+
+                isActive('/help')
+                  ? '!text-header bg-white'
+                  : 'text-primary'
+              }`}
+            >
+              Help
+            </Link>
+            {!isApprovedContributor && (
+              <Link
+                href="/become-contributor"
+              className={`px-2.5 xl:px-3 2xl:px-4 py-2 hover:bg-white hover:text-header rounded-lg text-sm xl:text-base text-white font-medium transition-colors whitespace-nowrap touch-manipulation ${
+                  isActive('/become-contributor')
+                    ? '!text-header bg-white'
+                  : 'text-primary'
+              }`}
+            >
+                Sell Assets
+              </Link>
+            )}
+          </div>
+
+          
+
+         
         </div>
       </nav>
     </header>

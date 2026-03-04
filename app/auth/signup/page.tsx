@@ -6,11 +6,17 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { FcGoogle } from 'react-icons/fc'
 import { BsGithub } from 'react-icons/bs'
+import Image from 'next/image'
+import Header from '@/components/layout/Header'
+import toast from 'react-hot-toast'
+
+
 
 export default function SignUpPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [fullName, setFullName] = useState('')
   const [error, setError] = useState('')
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -21,16 +27,18 @@ export default function SignUpPage() {
       email,
       password,
       options: {
-        // optional: redirect after email confirmation
-        emailRedirectTo: window.location.origin + '/signin',
+        data: {
+          full_name: fullName
+        },
+        emailRedirectTo: window.location.origin + '/auth/signin',
       },
     })
 
     if (error) {
-      setError(error.message)
-    } else if (data.user) {
-      await supabase.from('profiles').insert([{ id: data.user.id, role: 'user' }])
-      router.replace("/")
+        toast.error(error.message)
+    } else {
+        toast.success("Check your email to verify your account")
+        router.replace("/auth/signin")
     }
   }
 
@@ -39,78 +47,115 @@ export default function SignUpPage() {
       provider,
       options: { redirectTo: window.location.origin },
     })
-    if (error) setError(error.message)
+    if (error) toast.error("Error Sign up", error)
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-700">
-        <div className="mb-6 text-center">
-          <Link
+    <div className="min-h-screen">
+      <Header />
+      <div className="min-h-screen flex items-center flex-col lg:flex-row justify-around px-4">
+        <div className="relative w-[240px] sm:w-[300px] md:w-[400px] aspect-square">
+          <Image
+            src="/signup.png"
+            alt="signup image"
+            fill
+            className="object-contain"
+          />
+        </div>
+      <div className="max-w-md w-full rounded-2xl p-8">
+        <div className="mb-6">
+          <h1
             href="/"
-            className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent inline-block mb-4"
+            className="text-2xl font-bold text-header block mb-1"
           >
-            StocksOcean
-          </Link>
+            Register
+          </h1>
+          <span className="text-secondary">Join Us</span>
+
         </div>
 
-        <h1 className="text-3xl font-bold text-white mb-6 text-center">Sign Up</h1>
 
         {/* Email / Password Form */}
         <form onSubmit={handleSignUp} className="space-y-4 mb-4">
+          <div>
+            <label for="name">Full Name</label>
           <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-3 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-600"
+            type="text"
+            placeholder="Jhon Doe"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            className="w-full px-4 py-3 rounded-lg border border-gray-200 text-primary placeholder-gray-400 focus:border-header"
             required
           />
+          </div>
+
+          <div>
+            <label for="email">Email</label>
+          <input
+            type="email"
+            placeholder="jhon@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full px-4 py-3 rounded-lg border border-gray-200 text-primary placeholder-gray-400 focus:border-header"
+            required
+          />
+          </div>
+
+          <div>
+            <label for="password">Password</label>
 
           <input
             type="password"
-            placeholder="Password"
+            placeholder="**********"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-4 py-3 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-600"
+            className="w-full px-4 py-3 rounded-lg border border-gray-200 text-primary placeholder-gray-400 focus:border-header"
             required
           />
-
+          </div>
+          
           {error && <p className="text-red-500 text-sm">{error}</p>}
 
           <button
             type="submit"
-            className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg text-white font-bold transition"
+            className="py-3 px-6 bg-header hover:bg-secondary hover:text-white rounded-sm text-white font-bold transition"
           >
-            Sign Up
+            Register
           </button>
         </form>
 
         {/* OAuth */}
-        <div className="flex flex-col space-y-3">
+        <div className="flex items-center justify-center gap-4">
           <button
             onClick={() => handleOAuth('google')}
-            className="flex items-center justify-center gap-2 w-full py-3 bg-white hover:bg-gray-100 rounded-lg text-gray-800 font-bold transition"
+            className="w-12 h-12 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded-full transition"
           >
-            <FcGoogle className="w-6 h-6" />
-            <span>Sign up with Google</span>
+            <FcGoogle className="w-8 h-8" />
           </button>
 
           <button
             onClick={() => handleOAuth('github')}
-            className="flex items-center justify-center gap-2 w-full py-3 bg-gray-900 hover:bg-gray-800 rounded-lg text-white font-bold transition"
+            className="w-12 h-12 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded-full transition"
           >
-            <BsGithub className="w-6 h-6" />
-            <span>Sign up with GitHub</span>
+            <BsGithub className="w-8 h-8" />
           </button>
         </div>
 
         <div className="mt-4 text-center text-gray-400">
-          <Link href="/signin" className="text-blue-400 hover:underline">
-            Already have an account? Sign In
-          </Link>
+          
+          <p className="text-sm text-gray-400">
+            I Already have Account{' '}
+            <Link
+              href="/auth/signin"
+              className="text-header font-semibold hover:text-header hover:underline"
+            >
+              Log in
+            </Link>
+          </p>          
         </div>
       </div>
+      </div>
+      
     </div>
   )
 }

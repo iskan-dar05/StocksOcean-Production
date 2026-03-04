@@ -60,10 +60,10 @@ export default function AdminUploadAssetsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="min-h-screen">
         <main className="container mx-auto px-4 py-8">
           <div className="max-w-2xl mx-auto">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 border border-gray-200 dark:border-gray-700">
+            <div className="bg-white rounded-2xl shadow-lg p-8">
               <div className="flex items-center justify-center py-12">
                 <div className="w-8 h-8 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
               </div>
@@ -76,16 +76,16 @@ export default function AdminUploadAssetsPage() {
 
   if (!isApproved) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="min-h-screen">
         <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 md:py-8">
           <div className="max-w-2xl mx-auto">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 border border-gray-200 dark:border-gray-700">
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">
+            <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 border border-gray-200">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4 sm:mb-6">
                 Upload Asset
               </h1>
               
-              <div className="bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-200 dark:border-yellow-800 rounded-xl p-6 mb-6">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
+              <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-6 mb-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-3">
                   Contributor Access Required
                 </h2>
                 {!profile ? (
@@ -122,7 +122,7 @@ export default function AdminUploadAssetsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen">
 
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">

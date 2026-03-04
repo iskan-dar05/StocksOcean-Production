@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import toast from 'react-hot-toast'
 
 interface SettingsFormProps {
   settings: any
@@ -30,13 +31,13 @@ export default function SettingsForm({ settings }: SettingsFormProps) {
       })
 
       if (response.ok) {
-        alert('Settings saved successfully!')
+        toast.success("Saved successfully")
         router.refresh()
       } else {
         alert('Failed to save settings')
       }
     } catch (error) {
-      alert('Error saving settings')
+      toast.error('Error saving settings')
     } finally {
       setLoading(false)
     }

@@ -7,7 +7,7 @@ import Link from 'next/link'
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-white font-inter">
       <Header />
 
       <main className="container mx-auto px-3 sm:px-4 py-8 sm:py-12 md:py-16">
@@ -17,10 +17,10 @@ export default function AboutPage() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-8 sm:mb-12 md:mb-16"
         >
-          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">
+          <h1 className="heading-responsive font-bold text-header mb-3 sm:mb-4 font-jakarta">
             About StocksOcean
           </h1>
-          <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto px-4">
+          <p className="text-responsive text-secondary max-w-3xl mx-auto px-4">
             Empowering creators and businesses with premium digital assets
           </p>
         </motion.div>
@@ -32,16 +32,16 @@ export default function AboutPage() {
           transition={{ delay: 0.1 }}
           className="max-w-4xl mx-auto mb-8 sm:mb-12 md:mb-16 px-4"
         >
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 lg:p-12 border border-gray-200 dark:border-gray-700">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">
+          <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 md:p-12 border border-purple-200">
+            <h2 className="text-2xl sm:text-3xl font-bold text-header mb-4 sm:mb-6 font-jakarta">
               Our Mission
             </h2>
-            <p className="text-sm sm:text-base md:text-lg text-gray-700 dark:text-gray-300 mb-4">
+            <p className="text-primary mb-4 text-responsive">
               StocksOcean was founded with a simple mission: to create a marketplace where
               creators can monetize their digital assets and businesses can find high-quality
               content for their projects.
             </p>
-            <p className="text-lg text-gray-700 dark:text-gray-300">
+            <p className="text-primary text-lg">
               We believe that great design should be accessible to everyone, and creators
               deserve fair compensation for their work. Our platform bridges the gap between
               talented artists and businesses in need of premium digital assets.
@@ -56,7 +56,7 @@ export default function AboutPage() {
           transition={{ delay: 0.2 }}
           className="mb-8 sm:mb-12 md:mb-16 px-4"
         >
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-6 sm:mb-8 text-center">
+          <h2 className="text-2xl sm:text-3xl font-bold text-header mb-6 sm:mb-8 text-center font-jakarta">
             Our Values
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
@@ -66,7 +66,7 @@ export default function AboutPage() {
                 description:
                   'We curate only the highest quality assets, ensuring our marketplace maintains exceptional standards.',
                 icon: (
-                  <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-12 h-12 text-header" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -81,7 +81,7 @@ export default function AboutPage() {
                 description:
                   'We ensure creators receive fair compensation for their work, with transparent pricing and revenue sharing.',
                 icon: (
-                  <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-12 h-12 text-header" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -96,7 +96,7 @@ export default function AboutPage() {
                 description:
                   'We build our platform with our community in mind, listening to feedback and continuously improving.',
                 icon: (
-                  <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-12 h-12 text-header" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -112,39 +112,15 @@ export default function AboutPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 + index * 0.1 }}
-                className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 text-center"
+                className="bg-white rounded-xl p-6 border border-purple-200 text-center shadow-md"
               >
-                <div className="text-blue-600 dark:text-blue-400 mb-4 flex justify-center">
-                  {value.icon}
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
+                <div className="mb-4 flex justify-center">{value.icon}</div>
+                <h3 className="text-xl font-bold text-primary mb-3 font-jakarta">
                   {value.title}
                 </h3>
-                <p className="text-gray-600 dark:text-gray-400">{value.description}</p>
+                <p className="text-secondary">{value.description}</p>
               </motion.div>
             ))}
-          </div>
-        </motion.div>
-
-        {/* Team Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="max-w-4xl mx-auto mb-16"
-        >
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">
-            Our Team
-          </h2>
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 border border-gray-200 dark:border-gray-700">
-            <p className="text-lg text-gray-700 dark:text-gray-300 mb-4">
-              StocksOcean is built by a passionate team of designers, developers, and
-              entrepreneurs who are committed to creating the best digital asset marketplace.
-            </p>
-            <p className="text-lg text-gray-700 dark:text-gray-300">
-              We're constantly working to improve the platform, add new features, and support
-              our growing community of creators and buyers.
-            </p>
           </div>
         </motion.div>
 
@@ -155,21 +131,21 @@ export default function AboutPage() {
           transition={{ delay: 0.6 }}
           className="text-center"
         >
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 md:p-12 text-white">
-            <h2 className="text-3xl font-bold mb-4">Join Our Community</h2>
+          <div className="bg-header rounded-2xl p-8 md:p-12 text-white">
+            <h2 className="text-3xl font-bold mb-4 font-jakarta">Join Our Community</h2>
             <p className="text-xl mb-8 opacity-90">
               Start selling your assets or find the perfect content for your next project
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/auth/signup"
-                className="px-8 py-3 bg-white text-blue-600 rounded-xl font-semibold hover:bg-gray-100 transition-colors"
+                className="px-8 py-3 bg-white text-header rounded-xl font-semibold hover:bg-purple-50 transition-colors"
               >
                 Get Started
               </Link>
               <Link
                 href="/contributor/dashboard"
-                className="px-8 py-3 bg-blue-700 text-white rounded-xl font-semibold hover:bg-blue-800 transition-colors border-2 border-white/20"
+                className="px-8 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-800 transition-colors border-2 border-white/20"
               >
                 Become a Contributor
               </Link>

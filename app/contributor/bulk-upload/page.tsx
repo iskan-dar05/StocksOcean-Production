@@ -43,7 +43,7 @@ export default function ContributorBulkUploadPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="min-h-screen bg-gray-50">
         <Header />
         <main className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center py-20">
@@ -57,7 +57,7 @@ export default function ContributorBulkUploadPage() {
 
   if (!isApproved) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="min-h-screen bg-gray-50">
         <Header />
         <main className="container mx-auto px-4 py-8">
           <div className="max-w-2xl mx-auto">
@@ -77,7 +77,7 @@ export default function ContributorBulkUploadPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-gray-50">
       <Header />
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">

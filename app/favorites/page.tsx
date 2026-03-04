@@ -14,8 +14,25 @@ type Asset = Database['public']['Tables']['assets']['Row']
 export default function FavoritesPage() {
   const [favoriteAssets, setFavoriteAssets] = useState<Asset[]>([])
   const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState<any | null>(null)
+
+  useEffect(()=>{
+    const getUser = async () => {
+      const { data, error } = await supabase.auth.getUser()
+
+      if(error || !data?.user) {
+        window.location.href = '/auth/signin'
+        return
+      }
+      setUser(data.user)
+    }
+
+    getUser()
+  }, [])
 
   useEffect(() => {
+    if(!user) return
+
     fetchFavoriteAssets()
     
     // Listen for custom event when favorites are updated
@@ -35,34 +52,35 @@ export default function FavoritesPage() {
       window.removeEventListener('favoritesUpdated', handleFavoritesUpdate)
       window.removeEventListener('storage', handleStorageChange)
     }
-  }, [])
+  }, [user])
 
   const fetchFavoriteAssets = async () => {
     try {
-      // Get favorite IDs from localStorage
-      const favorites = JSON.parse(localStorage.getItem('favorites') || '[]')
-      
-      if (favorites.length === 0) {
+
+      const { data: favorites } = await supabase
+        .from('favorites')
+        .select('asset_id')
+        .eq('user_id', user.id)
+
+      if (!favorites || favorites.length === 0) {
         setFavoriteAssets([])
         setLoading(false)
         return
       }
 
-      // Fetch assets from Supabase
+      const assetIds = favorites.map(f => f.asset_id)
+
       const { data, error } = await supabase
         .from('assets')
         .select('*')
-        .in('id', favorites)
+        .in('id', assetIds)
         .eq('status', 'approved')
 
       if (error) throw error
 
-      // Filter to only include assets that are still in favorites
-      // (in case user removed some while page was loading)
-      const currentFavorites = JSON.parse(localStorage.getItem('favorites') || '[]')
-      const filtered = (data || []).filter((asset) => currentFavorites.includes(asset.id))
+
+        setFavoriteAssets(data || [])
       
-      setFavoriteAssets(filtered)
     } catch (error) {
       console.error('Error fetching favorite assets:', error)
     } finally {
@@ -71,7 +89,7 @@ export default function FavoritesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-white">
       <Header />
 
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 md:py-8">
@@ -80,10 +98,10 @@ export default function FavoritesPage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-6 sm:mb-8"
         >
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-2">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-header mb-2">
             My Favorites
           </h1>
-          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
+          <p className="text-sm sm:text-base text-secondary">
             Your saved favorite assets
           </p>
         </motion.div>
@@ -121,7 +139,7 @@ export default function FavoritesPage() {
           <div className="text-center py-20">
             <div className="max-w-md mx-auto">
               <svg
-                className="mx-auto h-16 w-16 text-gray-400 mb-4"
+                className="mx-auto h-16 w-16 text-header mb-4"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -133,15 +151,15 @@ export default function FavoritesPage() {
                   d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
                 />
               </svg>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              <h2 className="text-2xl font-bold text-primary mb-2">
                 No Favorites Yet
               </h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">
+              <p className="text-secondary mb-6">
                 Start exploring and save your favorite assets by clicking the bookmark icon.
               </p>
               <Link
                 href="/browse"
-                className="inline-block px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl"
+                className="inline-block px-6 py-3 bg-header hover:bg-white hover:border hover:border-header hover:text-header text-white rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl"
               >
                 Browse Assets
               </Link>

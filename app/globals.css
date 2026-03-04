@@ -3,260 +3,116 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Base */
+  --color-bg: #ffffff;              /* soft slate background */
+  --header-bg: #1ABA1A;
+  --color-foreground: #0f172a;      /* slate-900 */
+  
+  /* Brand */
+  --color-primary: #000000;         /* blue-600 */
+  --color-primary-hover: #ffffff;   /* blue-700 */
+  --color-secondary: #999999;       /* slate-500 */
+
+
+  /* Extra */
+  --shadow-soft: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-medium: 0 4px 12px rgba(0,0,0,0.06);
+  --shadow-large: 0 10px 30px rgba(0,0,0,0.08);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
 
-/* Mobile-first base styles */
-* {
-  box-sizing: border-box;
-}
 
-html {
-  -webkit-text-size-adjust: 100%;
-  -moz-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-  scroll-behavior: smooth;
-}
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-foreground);
+  line-height: 1.7;
   margin: 0;
   padding: 0;
-  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
-html, body {
-  height: 100%;
-  overflow-x: hidden;
+
+/* Container utility */
+.container-fluid {
   width: 100%;
+  max-width: 1440px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: clamp(1rem, 4vw, 2rem);
+  padding-right: clamp(1rem, 4vw, 2rem);
 }
 
-/* Prevent horizontal scroll */
-img, video, iframe {
-  max-width: 100%;
-  height: auto;
+.btn {
+  padding: 0.6rem 1.2rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
 }
 
-/* Responsive container utilities */
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-  
-  .touch-manipulation {
-    touch-action: manipulation;
-  }
-
-  /* Fluid container */
-  .container-fluid {
-    width: 100%;
-    margin-left: auto;
-    margin-right: auto;
-    padding-left: clamp(1rem, 4vw, 2rem);
-    padding-right: clamp(1rem, 4vw, 2rem);
-  }
-
-  /* Responsive grid */
-  .grid-responsive {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
-    gap: clamp(1rem, 3vw, 1.5rem);
-  }
-
-  /* Aspect ratio utilities */
-  .aspect-video {
-    aspect-ratio: 16 / 9;
-  }
-
-  .aspect-square {
-    aspect-ratio: 1 / 1;
-  }
-
-  .aspect-portrait {
-    aspect-ratio: 3 / 4;
-  }
-
-  /* Safe area support for notched devices */
-  .safe-area-top {
-    padding-top: env(safe-area-inset-top);
-  }
-
-  .safe-area-bottom {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-
-  .safe-area-left {
-    padding-left: env(safe-area-inset-left);
-  }
-
-  .safe-area-right {
-    padding-right: env(safe-area-inset-right);
-  }
-
-  /* Responsive typography */
-  .text-responsive {
-    font-size: clamp(1rem, 2.5vw, 1.25rem);
-  }
-
-  .heading-responsive {
-    font-size: clamp(1.5rem, 5vw, 3rem);
-    line-height: 1.2;
-  }
-
-  /* Smooth scrolling for mobile */
-  @media (prefers-reduced-motion: no-preference) {
-    html {
-      scroll-behavior: smooth;
-    }
-  }
+.btn-primary {
+  background-color: var(--color-primary);
+  color: white;
+  box-shadow: var(--shadow-soft);
 }
 
-/* Touch-friendly interactive elements */
-@layer base {
-  button,
-  a,
-  input[type="button"],
-  input[type="submit"],
-  select,
-  [role="button"] {
-    min-height: 44px;
-    min-width: 44px;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  /* Larger touch targets on mobile */
-  @media (max-width: 640px) {
-    button,
-    a,
-    input[type="button"],
-    input[type="submit"],
-    select {
-      min-height: 48px;
-      padding: 0.75rem 1rem;
-    }
-  }
-
-  /* Normal touch targets on larger screens */
-  @media (min-width: 641px) {
-    button,
-    a,
-    input[type="button"],
-    input[type="submit"] {
-      min-height: auto;
-      min-width: auto;
-    }
-  }
-
-  /* Focus styles for accessibility */
-  *:focus-visible {
-    outline: 2px solid #3b82f6;
-    outline-offset: 2px;
-  }
-
-  /* Prevent text selection on buttons */
-  button {
-    user-select: none;
-    -webkit-user-select: none;
-  }
+.btn-primary:hover {
+  background-color: var(--color-primary-hover);
+  box-shadow: var(--shadow-medium);
+  transform: translateY(-1px);
 }
 
-/* Image optimization */
-@layer components {
-  img {
-    height: auto;
-    max-width: 100%;
-    display: block;
-  }
-
-  /* Lazy loading placeholder */
-  img[loading="lazy"] {
-    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-    background-size: 200% 100%;
-    animation: loading 1.5s infinite;
-  }
-
-  @keyframes loading {
-    0% {
-      background-position: 200% 0;
-    }
-    100% {
-      background-position: -200% 0;
-    }
-  }
+.btn-secondary {
+  background-color: var(--color-muted);
+  color: var(--color-foreground);
+  border: 1px solid var(--color-border);
 }
 
-/* Responsive tables */
-@layer utilities {
-  .table-responsive {
-    display: block;
-    width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  @media (min-width: 768px) {
-    .table-responsive {
-      display: table;
-    }
-  }
+.card {
+  background-color: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-soft);
+  transition: all 0.25s ease;
 }
 
-/* Print styles */
-@media print {
-  * {
-    background: transparent !important;
-    color: black !important;
-    box-shadow: none !important;
-    text-shadow: none !important;
-  }
-
-  a,
-  a:visited {
-    text-decoration: underline;
-  }
-
-  pre,
-  blockquote {
-    border: 1px solid #999;
-    page-break-inside: avoid;
-  }
-
-  thead {
-    display: table-header-group;
-  }
-
-  tr,
-  img {
-    page-break-inside: avoid;
-  }
-
-  img {
-    max-width: 100% !important;
-  }
-
-  p,
-  h2,
-  h3 {
-    orphans: 3;
-    widows: 3;
-  }
-
-  h2,
-  h3 {
-    page-break-after: avoid;
-  }
+.card:hover {
+  box-shadow: var(--shadow-medium);
+  transform: translateY(-2px);
 }
 
+a {
+  color: var(--color-primary);
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--color-primary-hover);
+}
+
+.navbar {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--color-border);
+}
+
+
+/* Dark/light toggle helper */
+[data-theme="dark"] body {
+  background-color: var(--color-bg);
+  color: var(--color-foreground);
+}
+
+/* Responsive typography */
+.text-responsive {
+  font-size: clamp(1rem, 2.5vw, 1.125rem);
+}
+
+.heading-responsive {
+  font-size: clamp(1.5rem, 5vw, 3rem);
+  line-height: 1.2;
+}

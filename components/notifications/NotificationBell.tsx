@@ -156,7 +156,7 @@ export default function NotificationBell() {
         aria-label="Notifications"
       >
         <svg
-          className="w-6 h-6 text-gray-700 dark:text-gray-300"
+          className="w-6 h-6 text-white lg:text-gray-700"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"

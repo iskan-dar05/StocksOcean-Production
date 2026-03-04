@@ -266,7 +266,7 @@ export default function AssetDetailPage({ params }: { params: { id: string } }) 
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="min-h-screen bg-white">
         <Header />
         <div className="flex justify-center items-center py-20">
           <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
@@ -278,7 +278,7 @@ export default function AssetDetailPage({ params }: { params: { id: string } }) 
 
   if (!asset) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="min-h-screen bg-white">
         <Header />
         <main className="container mx-auto px-4 py-20 text-center">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
@@ -304,7 +304,7 @@ export default function AssetDetailPage({ params }: { params: { id: string } }) 
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-white">
       <Header />
 
       <main className="container-fluid py-4 sm:py-6 md:py-8">

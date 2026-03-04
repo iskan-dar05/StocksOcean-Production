@@ -3,7 +3,7 @@ import Footer from '@/components/layout/Footer'
 
 export default function RefundPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-gray-50">
       <Header />
       <main className="container-fluid py-8 sm:py-12 md:py-16">
         <div className="max-w-4xl mx-auto">

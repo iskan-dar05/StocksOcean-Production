@@ -9,10 +9,15 @@ import AssetCard from '@/components/marketplace/AssetCard'
 import { AssetCardSkeleton } from '@/components/ui/SkeletonLoader'
 import { useAssets } from '@/hooks/useAssets'
 import { supabase } from '@/lib/supabaseClient'
+import * as Icons from 'lucide-react'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 
 function BrowseContent() {
   const searchParams = useSearchParams()
   const searchQuery = searchParams.get('search') || ''
+  const [open, setOpen] = useState(false)
+  const [typeOpen, setTypeOpen] = useState(false)
+const [sortOpen, setSortOpen] = useState(false)
 
   const [filters, setFilters] = useState({
     type: 'all',
@@ -59,13 +64,22 @@ function BrowseContent() {
       )
     : assets
 
+
+  const selectedCategory = categories.find(
+  (c) => c.slug === filters.category
+)
+
+  const SelectedIcon = selectedCategory?.icon
+    ? Icons[selectedCategory.icon]
+    : null
+
   // Reset page when filters change
   useEffect(() => {
     setPage(1)
   }, [filters.type, filters.category, filters.sortBy])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-white">
       <Header />
 
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 md:py-8">
@@ -75,10 +89,10 @@ function BrowseContent() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-6 sm:mb-8"
         >
-          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-2 sm:mb-4">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-header mb-2 sm:mb-4">
             Browse Assets
           </h1>
-          <p className="text-sm sm:text-base md:text-lg text-gray-600 dark:text-gray-400">
+          <p className="text-sm sm:text-base md:text-lg text-secondary">
             Discover premium digital assets for your projects
           </p>
         </motion.div>
@@ -88,65 +102,162 @@ function BrowseContent() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 sm:p-6 mb-6 sm:mb-8 border border-gray-200 dark:border-gray-700"
+          className="bg-header rounded-xl p-4 sm:p-6 mb-6 sm:mb-8"
         >
-          <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {/* Category Filter */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-semibold text-white mb-2">
                 Category
               </label>
-              <select
-                value={filters.category}
-                onChange={(e) => setFilters({ ...filters, category: e.target.value })}
-                className="w-full px-4 py-3 sm:py-2 text-base sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 touch-manipulation"
-              >
-                <option value="all">All Categories</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.slug}>
-                    {cat.icon} {cat.name}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+  <button
+    onClick={() => {
+      setOpen(!open)
+      setTypeOpen(false)
+      setSortOpen(false)
+    }}
+    className="w-full px-4 py-2 bg-white border rounded-lg flex items-center justify-between"
+  >
+    {selectedCategory?.icon && (
+      <>
+        {(() => {
+          const Icon = Icons[selectedCategory.icon]
+          return Icon ? <Icon size={16} className="mr-2" /> : null
+        })()}
+      </>
+    )}
+    {selectedCategory?.name || "All Categories"}
+    {open ? (
+      <ChevronUp size={16} className="" />
+    ) : (
+      <ChevronDown size={16} className="" />
+    )}
+  </button>
+
+  {open && (
+    <div className="absolute w-full bg-white border rounded-lg mt-2 shadow-lg z-50">
+      {categories.map((cat) => {
+        const Icon = cat.icon ? Icons[cat.icon] : null
+        return (
+          <div
+            key={cat.id}
+            onClick={() => {
+              setFilters({ ...filters, category: cat.slug })
+              setOpen(false)
+            }}
+            className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer"
+          >
+            {Icon && <Icon size={16} className="mr-2 text-gray-500" />}
+            {cat.name}
+          </div>
+        )
+      })}
+    </div>
+  )}
+</div>
             </div>
             {/* Type Filter */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                Type
-              </label>
-              <select
-                value={filters.type}
-                onChange={(e) => setFilters({ ...filters, type: e.target.value })}
-                className="w-full px-4 py-3 sm:py-2 text-base sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 touch-manipulation"
-              >
-                <option value="all">All Types</option>
-                <option value="image">Images</option>
-                <option value="video">Videos</option>
-                <option value="3d">3D Objects</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
+            {/* Type Filter */}
+<div>
+  <label className="block text-sm font-semibold text-white mb-2">
+    Type
+  </label>
+
+  <div className="relative">
+    <button
+      onClick={() => {
+        setTypeOpen(!typeOpen)
+        setSortOpen(false)
+        setOpen(false)
+      }}
+      className="w-full px-4 py-2 bg-white border rounded-lg flex items-center justify-between"
+    >
+      <span className="capitalize">
+        {filters.type === "all" ? "All Types" : filters.type}
+      </span>
+
+      {typeOpen ? (
+        <ChevronUp size={16} />
+      ) : (
+        <ChevronDown size={16} />
+      )}
+    </button>
+
+    {typeOpen && (
+      <div className="absolute w-full bg-white border rounded-lg mt-2 shadow-lg z-50">
+        {["all", "image", "video", "3d", "other"].map((type) => (
+          <div
+            key={type}
+            onClick={() => {
+              setFilters({ ...filters, type })
+              setTypeOpen(false)
+              setOpen(false)
+            }}
+            className="px-4 py-2 hover:bg-gray-100 cursor-pointer capitalize"
+          >
+            {type === "all" ? "All Types" : type}
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+</div>
 
             {/* Sort Filter */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                Sort By
-              </label>
-              <select
-                value={filters.sortBy}
-                onChange={(e) =>
-                  setFilters({
-                    ...filters,
-                    sortBy: e.target.value as typeof filters.sortBy,
-                  })
-                }
-                className="w-full px-4 py-3 sm:py-2 text-base sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 touch-manipulation"
-              >
-                <option value="newest">Newest First</option>
-                <option value="oldest">Oldest First</option>
-                <option value="trending">Trending</option>
-              </select>
-            </div>
+            {/* Sort Filter */}
+<div>
+  <label className="block text-sm font-semibold text-white mb-2">
+    Sort By
+  </label>
+
+  <div className="relative">
+    <button
+      onClick={() => {
+        setSortOpen(!sortOpen)
+        setTypeOpen(false)
+        setOpen(false)
+      }}
+      className="w-full px-4 py-2 bg-white border rounded-lg flex items-center justify-between"
+    >
+      <span>
+        {filters.sortBy === "newest" && "Newest First"}
+        {filters.sortBy === "oldest" && "Oldest First"}
+        {filters.sortBy === "trending" && "Trending"}
+      </span>
+
+      {sortOpen ? (
+        <ChevronUp size={16} />
+      ) : (
+        <ChevronDown size={16} />
+      )}
+    </button>
+
+    {sortOpen && (
+      <div className="absolute w-full bg-white border rounded-lg mt-2 shadow-lg z-50">
+        {[
+          { value: "newest", label: "Newest First" },
+          { value: "oldest", label: "Oldest First" },
+          { value: "trending", label: "Trending" },
+        ].map((sort) => (
+          <div
+            key={sort.value}
+            onClick={() => {
+              setFilters({
+                ...filters,
+                sortBy: sort.value as typeof filters.sortBy,
+              })
+              setSortOpen(false)
+            }}
+            className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+          >
+            {sort.label}
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+</div>
           </div>
         </motion.div>
 

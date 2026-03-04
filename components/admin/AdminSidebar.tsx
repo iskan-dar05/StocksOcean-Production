@@ -109,13 +109,13 @@ export default function AdminSidebar() {
         setIsMobileOpen(false)
       }
     }}
-    className="fixed lg:static inset-y-0 left-0 z-[40]
-               w-64 sm:w-72 bg-white dark:bg-gray-900
-               border-r border-gray-200 dark:border-gray-800"
+    className="fixed inset-y-0 left-0 z-[40]
+               w-64 sm:w-72 bg-white
+               border-r border-gray-200"
   >
-    <div className="flex md:pt-[20px] flex-col h-full">
+    <div className="flex md:pt-[20px] flex-col h-full overflow-y-auto">
             {/* Logo */}
-            <div className="p-6 border-b border-gray-200 dark:border-gray-800">
+            <div className="p-6 border-b">
               <Link href="/admin/dashboard" className="flex items-center gap-2">
                 <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
                   <span className="text-white font-bold text-lg">SO</span>
@@ -130,19 +130,19 @@ export default function AdminSidebar() {
             {/* Navigation */}
             <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
               {navItems.map(({ href, label, icon: Icon }) => {
-                const isActive = pathname === href || pathname.startsWith(href + '/')
+                const isActive = pathname === href
                 return (
                   <Link
                     key={href}
                     href={href}
                     onClick={() => setIsMobileOpen(false)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                    className={`flex items-center gap-3 px-4 py-3 hover:text-primary rounded-lg transition-colors ${
                       isActive
-                        ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                        ? 'bg-blue-50 text-blue-700'
+                        : 'text-gray-700 hover:bg-gray-100'
                     }`}
                   >
-                    <Icon className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+                    <Icon className="h-5 w-5 text-gray-600" />
                     <span className="font-medium">{label}</span>
                   </Link>
                 )

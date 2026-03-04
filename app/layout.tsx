@@ -1,5 +1,12 @@
 import type { Metadata } from 'next'
+import { Inter, Plus_Jakarta_Sans } from 'next/font/google'
+import { Toaster } from 'react-hot-toast'
 import './globals.css'
+
+
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
+
+
 
 export const metadata: Metadata = {
   title: 'StocksOcean - Premium Digital Assets Marketplace',
@@ -20,8 +27,11 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
-      <body className="antialiased dark" suppressHydrationWarning>{children}</body>
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
+      <body className="font-sans" suppressHydrationWarning>
+        {children}
+        <Toaster position="top-right" />
+      </body>
     </html>
   )
 }

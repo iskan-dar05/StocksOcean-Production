@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { FcGoogle } from 'react-icons/fc'
 import { BsGithub } from 'react-icons/bs'
+import Header from '@/components/layout/Header'
+import Image from 'next/image'
 
 export default function SignUpPage() {
   const router = useRouter()
@@ -28,17 +30,30 @@ export default function SignUpPage() {
   }
 
   const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
+  e.preventDefault()
+  setError('')
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  })
 
-    if (error) setError(error.message)
-    else if (data.user) await redirectByRole(data.user.id)
+  if (error) {
+    setError(error.message)
+    return
   }
+
+  if (data.user) {
+    if (!data.user.email_confirmed_at) {
+      setError('Please verify your email before logging in.')
+
+      await supabase.auth.signOut()
+      return
+    }
+
+    await redirectByRole(data.user.id)
+  }
+}
 
   const handleOAuth = async (provider: 'google' | 'github') => {
     const { error } = await supabase.auth.signInWithOAuth({
@@ -48,75 +63,100 @@ export default function SignUpPage() {
     if (error) setError(error.message)
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-700">
-        <div className="mb-6 text-center">
-          <Link
+   return (
+    <div className="min-h-screen">
+      <Header />
+      <div className="min-h-screen flex items-center flex-col lg:flex-row justify-around px-4">
+        <div className="relative w-[240px] sm:w-[300px] md:w-[400px] aspect-square">
+          <Image
+            src="/signup.png"
+            alt="signup image"
+            fill
+            className="object-contain"
+          />
+        </div>
+      <div className="max-w-md w-full rounded-2xl p-8">
+        <div className="mb-6">
+          <h1
             href="/"
-            className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent inline-block mb-4"
+            className="text-2xl font-bold text-header block mb-1"
           >
-            StocksOcean
-          </Link>
+            Log in
+          </h1>
+          <span className="text-secondary">Join Us</span>
+
         </div>
 
-        <h1 className="text-3xl font-bold text-white mb-6 text-center">Sign In</h1>
 
         {/* Email / Password Form */}
         <form onSubmit={handleSignIn} className="space-y-4 mb-4">
+          <div>
+            <label for="email">Email</label>
           <input
             type="email"
-            placeholder="Email"
+            placeholder="jhon@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-3 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-600"
+            className="w-full px-4 py-3 rounded-lg border border-gray-200 text-primary placeholder-gray-400 focus:border-header"
             required
           />
+          </div>
+
+          <div>
+            <label for="password">Password</label>
 
           <input
             type="password"
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-4 py-3 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-600"
+            className="w-full px-4 py-3 rounded-lg border border-gray-200 text-primary placeholder-gray-400 focus:border-header"
             required
           />
-
+          </div>
+          
           {error && <p className="text-red-500 text-sm">{error}</p>}
 
           <button
             type="submit"
-            className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg text-white font-bold transition"
+            className="py-3 px-6 bg-header hover:bg-secondary hover:text-white rounded-sm text-white font-bold transition"
           >
-            Sign In
+            Log in
           </button>
         </form>
 
-        <div className="flex flex-col space-y-3">
+        {/* OAuth */}
+        <div className="flex items-center justify-center gap-4">
           <button
             onClick={() => handleOAuth('google')}
-            className="flex items-center justify-center gap-2 w-full py-3 bg-green-400 hover:bg-green-700 rounded-lg text-white font-bold transition"
+            className="w-12 h-12 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded-full transition"
           >
-            <FcGoogle className="mr-2 w-6 h-6" />
-
-            <span>Sign in with Google</span>
+            <FcGoogle className="w-8 h-8" />
           </button>
 
           <button
             onClick={() => handleOAuth('github')}
-            className="flex items-center justify-center gap-2 w-full py-3 bg-gray-900 hover:bg-gray-800 rounded-lg text-white font-bold transition"
+            className="w-12 h-12 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded-full transition"
           >
-          <BsGithub className="mr-2 w-6 h-6" />
-          <span>Sign in with GitHub</span>
+            <BsGithub className="w-8 h-8" />
           </button>
         </div>
 
         <div className="mt-4 text-center text-gray-400">
-          <Link href="/signup" className="text-purple-400 hover:underline">
-            Create an account
-          </Link>
+          
+          <p className="text-sm text-gray-400">
+            I don’t have an account?{' '}
+            <Link
+              href="/auth/signup"
+              className="text-header font-semibold hover:text-header hover:underline"
+            >
+              Register
+            </Link>
+          </p>          
         </div>
       </div>
+      </div>
+      
     </div>
   )
 }

@@ -23,26 +23,35 @@ interface AssetCardProps {
 export default function AssetCard({ asset }: AssetCardProps) {
   const [isFavorite, setIsFavorite] = useState(false)
   const [contributor, setContributor] = useState<{ username: string | null; avatar_url: string | null; role: string | null } | null>(null)
+  const [user, setUser] = useState<any | null>(null)
 
   // Load favorite status from localStorage
+
   useEffect(() => {
-    const checkFavorite = () => {
-      const favorites = JSON.parse(localStorage.getItem('favorites') || '[]')
-      setIsFavorite(favorites.includes(asset.id))
+  const getUser = async () => {
+    const { data, error } = await supabase.auth.getUser()
+
+    if (error || !data?.user) {
+      window.location.href = '/auth/signin'
+      return
+    }
+
+    setUser(data.user)
+  }
+
+  getUser()
+}, [])
+
+
+  useEffect(() => {
+    if(!user) return
+    const checkFavorite = async () => {
+      const {data} = await supabase.from('favorites').select('id').eq('user_id', user.id).eq('asset_id', asset.id)
+      setIsFavorite(data.length > 0)
     }
     
     checkFavorite()
-    
-    // Listen for storage changes
-    window.addEventListener('storage', checkFavorite)
-    // Also check periodically for changes within the same tab
-    const interval = setInterval(checkFavorite, 500)
-    
-    return () => {
-      window.removeEventListener('storage', checkFavorite)
-      clearInterval(interval)
-    }
-  }, [asset.id])
+  }, [user, asset.id])
 
   // Get preview URL
   const getPreviewUrl = (): string | null => {
@@ -92,20 +101,16 @@ export default function AssetCard({ asset }: AssetCardProps) {
     e.preventDefault()
     e.stopPropagation()
     
-    try {
-      // Get current favorites from localStorage
-      const favorites = JSON.parse(localStorage.getItem('favorites') || '[]')
-      
+    try {      
       if (isFavorite) {
-        // Remove from favorites
-        const updatedFavorites = favorites.filter((id: string) => id !== asset.id)
-        localStorage.setItem('favorites', JSON.stringify(updatedFavorites))
         setIsFavorite(false)
+        await supabase.from('favorites').delete().eq('user_id', user.id).eq('asset_id', asset.id)
       } else {
-        // Add to favorites
-        const updatedFavorites = [...favorites, asset.id]
-        localStorage.setItem('favorites', JSON.stringify(updatedFavorites))
         setIsFavorite(true)
+        await supabase.from('favorites').insert({
+          user_id: user.id,
+          asset_id: asset.id
+        })
       }
       
       // Dispatch custom event to notify other components

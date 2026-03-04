@@ -198,110 +198,118 @@ type billingPeriodType = 'monthly' | 'yearly'
 }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-      <Header />
+    <div className="min-h-screen bg-white">
+  <Header />
 
-      <main className="container mx-auto px-4 py-16">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
+  <main className="container mx-auto px-4 py-16">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="text-center mb-12"
+    >
+      <h1 className="text-4xl md:text-5xl font-bold text-header mb-4">
+        Simple, Transparent Pricing
+      </h1>
+      <p className="text-lg md:text-xl text-secondary max-w-2xl mx-auto mb-8">
+        Choose the plan that works best for you. All plans include full commercial licenses.
+      </p>
+
+      {/* Billing Toggle */}
+      <div className="flex items-center justify-center gap-6 mb-8">
+        <span
+          className={`text-sm font-medium ${
+            billingPeriod === 'monthly'
+              ? 'text-primary'
+              : 'text-secondary'
+          }`}
         >
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-            Simple, Transparent Pricing
-          </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-8">
-            Choose the plan that works best for you. All plans include full commercial licenses.
-          </p>
+          Monthly
+        </span>
 
-          {/* Billing Toggle */}
-          <div className="flex items-center justify-center gap-6 mb-8">
-            <span
-              className={`text-sm font-medium ${
-                billingPeriod === 'monthly'
-                  ? 'text-gray-900 dark:text-white'
-                  : 'text-gray-500 dark:text-gray-400'
-              }`}
-            >
-              Monthly
-            </span>
-
-            <label className="inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                className="sr-only peer"
-                checked={billingPeriod === 'yearly'}
-                onChange={() =>
-                  setBillingPeriod(billingPeriod === 'monthly' ? 'yearly' : 'monthly')
-                }
-              />
-              <div className="w-11 h-6 bg-gray-300 peer-checked:bg-blue-600 rounded-full relative transition">
-                <div className={`absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition peer-checked:translate-x-5 ${billingPeriod === 'yearly' ? 'translate-x-5 sm:translate-x-6 md:translate-x-7' : ''}`}></div>
-                
-              </div>
-            </label>
-            <span
-              className={`text-sm font-medium ${
-                billingPeriod === 'yearly'
-                  ? 'text-gray-900 dark:text-white'
-                  : 'text-gray-500 dark:text-gray-400'
-              }`}
-            >
-              Yearly
-              <span className="ml-2 text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded">
-                Save 17%
-              </span>
-            </span>
+        <label className="inline-flex items-center cursor-pointer">
+          <input
+            type="checkbox"
+            className="sr-only peer"
+            checked={billingPeriod === 'yearly'}
+            onChange={() =>
+              setBillingPeriod(billingPeriod === 'monthly' ? 'yearly' : 'monthly')
+            }
+          />
+          <div className="w-11 h-6 bg-secondary peer-checked:bg-header rounded-full relative transition">
+            <div className={`absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition ${billingPeriod === 'yearly' ? 'translate-x-5 sm:translate-x-6 md:translate-x-5' : ''}`}></div>
           </div>
-        </motion.div>
+        </label>
 
-        {loading ? (
-          <div className="flex justify-center items-center py-20">
-            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 max-w-7xl mx-auto mb-8 sm:mb-12">
-              {plans
-                .map((plan, index) => {
-                  const originalPrice =
-                    billingPeriod === 'monthly' ? plan.originalPriceMonthly : plan.originalPriceYearly
-                  const firstMonthPrice = calculateFinalPrice(originalPrice, plan.firstMonthDiscount)
+        <span
+          className={`text-sm font-medium ${
+            billingPeriod === 'yearly'
+              ? 'text-primary'
+              : 'text-secondary'
+          }`}
+        >
+          Yearly
+          <span className="ml-2 text-xs bg-header text-white px-2 py-1 rounded">
+            Save 17%
+          </span>
+        </span>
+      </div>
+    </motion.div>
 
-                  return (
-                    <motion.div
-                      key={plan.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      whileHover={{ y: -5 }}
-                    >
-                      <PricingCard
-                        name={plan.name}
-                        price={`$${firstMonthPrice.toFixed(2)}`}
-                        period={billingPeriod === 'monthly' ? '/month' : '/year'}
-                        originalPrice={`$${originalPrice.toFixed(2)}`}
-                        isEligibleForSignupDiscount={isEligibleForSignupDiscount}
-                        discountPercent={plan.firstMonthDiscount}
-                        description={plan.description}
-                        features={plan.features}
-                        popular={plan.isPopular}
-                        ctaText={user ? "Get Started" : "Sign In to Subscribe"}
-                        ctaLink="#"
-                        onCtaClick={() => handleGetStarted(plan.id, billingPeriod)}
-                        monthlyDownloads={plan.monthlyDownloads}
-                      />
-                    </motion.div>
-                  )
-                })}
-            </div>
-            {/* Enterprise Plan - Display separately */}
-            
-          </>
-        )}
-      </main>
+    {loading ? (
+      <div className="flex justify-center items-center py-20">
+        <div className="w-12 h-12 border-4 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    ) : (
+      <>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 max-w-7xl mx-auto mb-8 sm:mb-12">
+          {plans.map((plan, index) => {
+            const originalPrice =
+              billingPeriod === 'monthly' ? plan.originalPriceMonthly : plan.originalPriceYearly
+            const firstMonthPrice = calculateFinalPrice(originalPrice, plan.firstMonthDiscount)
 
-      <Footer />
-    </div>
+            return (
+              <motion.div
+                key={plan.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                whileHover={{ y: -5 }}
+              >
+                <PricingCard
+                  name={plan.name}
+                  price={`$${firstMonthPrice.toFixed(2)}`}
+                  period={billingPeriod === 'monthly' ? '/month' : '/year'}
+                  originalPrice={`$${originalPrice.toFixed(2)}`}
+                  isEligibleForSignupDiscount={isEligibleForSignupDiscount}
+                  discountPercent={plan.firstMonthDiscount}
+                  description={plan.description}
+                  features={plan.features}
+                  popular={plan.isPopular}
+                  ctaText={user ? "Get Started" : "Sign In to Subscribe"}
+                  ctaLink="#"
+                  onCtaClick={() => handleGetStarted(plan.id, billingPeriod)}
+                  monthlyDownloads={plan.monthlyDownloads}
+                  // NEW COLOR STYLING FOR CARD
+                  cardBg="bg-white/90 dark:bg-purple-50/80"
+                  cardBorder="border border-purple-200"
+                  nameColor="text-purple-900"
+                  priceColor="text-purple-800"
+                  originalPriceColor="text-purple-500 line-through"
+                  ctaBg="bg-purple-600 hover:bg-purple-700"
+                  ctaTextColor="text-white"
+                  featureTextColor="text-purple-700"
+                  popularBg="bg-purple-100 text-purple-800"
+                />
+              </motion.div>
+            )
+          })}
+        </div>
+      </>
+    )}
+  </main>
+
+  <Footer />
+</div>
+
   )
 }
