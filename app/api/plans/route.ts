@@ -58,10 +58,10 @@ export async function POST(request: NextRequest) {
     if (isWithin48Hours(user.created_at)) {
       // First-month discount
       if (billing === 'monthly') {
-        finalPrice = calculateFinalPrice(parseFloat(plan.original_price_monthly), plan.first_month_discount_percent)
+        finalPrice = calculateFinalPrice(plan.original_price_monthly, plan.first_month_discount_percent)
         endedAt.setMonth(startedAt.getMonth() + 1)
       } else {
-        finalPrice = calculateFinalPrice(parseFloat(plan.original_price_yearly), plan.first_month_discount_percent)
+        finalPrice = calculateFinalPrice(plan.original_price_yearly, plan.first_month_discount_percent)
         endedAt.setFullYear(startedAt.getFullYear() + 1)
       }
     } else {
