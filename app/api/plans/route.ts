@@ -87,13 +87,13 @@ export async function POST(request: NextRequest) {
     // Insert subscription
     const { data: newSubscription, error: subscriptionError } = await supabase
       .from('subscriptions')
-      .insert([{
+      .insert({
         user_id: user.id,
         plan_id: plan.id,
         status: 'active',
-        started_at: startedAt,
-        ends_at: endedAt
-      }])
+        started_at: startedAt.toISOString(),
+        ends_at: endedAt.toISOString()
+      })
       .select()
       .single()
 
