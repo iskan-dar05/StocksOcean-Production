@@ -65,7 +65,6 @@ export default function SignUpPage() {
       <div className="max-w-md w-full rounded-2xl p-8">
         <div className="mb-6">
           <h1
-            href="/"
             className="text-2xl font-bold text-header block mb-1"
           >
             Register
