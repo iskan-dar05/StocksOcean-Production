@@ -16,18 +16,7 @@ export default function SignUpPage() {
   const [error, setError] = useState('')
 
 
-  const redirectByRole = async (userId: string) => {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', userId)
-      .single()
 
-    const role = profile?.role?.toLowerCase()
-    if (role === 'contributor') router.replace('/contributor/dashboard')
-    else if (role === 'admin') router.replace('/admin/dashboard')
-    else router.replace('/')
-  }
 
   const handleSignIn = async (e: React.FormEvent) => {
   e.preventDefault()
@@ -51,7 +40,7 @@ export default function SignUpPage() {
       return
     }
 
-    await redirectByRole(data.user.id)
+    router.push('/')
   }
 }
 

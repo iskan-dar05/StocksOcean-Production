@@ -13,10 +13,13 @@ const isWithin48Hours = (createdAt: string) => {
 }
 
 const calculateFinalPrice = (
-	originalPrice: number,
-	planDiscount: number
+  originalPrice: number | null,
+  planDiscount: number | null
 ) => {
-	return originalPrice * (1 - planDiscount / 100) 
+  const price = originalPrice ?? 0
+  const discount = planDiscount ?? 0
+
+  return price * (1 - discount / 100)
 }
 
 
@@ -59,24 +62,24 @@ export async function POST(request: NextRequest) {
       // First-month discount
       if (billing === 'monthly') {
         finalPrice = calculateFinalPrice(
-          plan.original_price_monthly ?? 0,
-          plan.first_month_discount_percent ?? 0
-        )
+            plan.original_price_monthly,
+            plan.first_month_discount_percent
+          )
         endedAt.setMonth(startedAt.getMonth() + 1)
       } else {
         finalPrice = calculateFinalPrice(
-            plan.original_price_yearly ?? 0,
-            plan.first_month_discount_percent ?? 0
+            plan.original_price_yearly,
+            plan.first_month_discount_percent
           )
         endedAt.setFullYear(startedAt.getFullYear() + 1)
       }
     } else {
       // Normal price
       if (billing === 'monthly') {
-        finalPrice = Number(plan.original_price_monthly)
+        finalPrice = plan.original_price_monthly ?? 0
         endedAt.setMonth(startedAt.getMonth() + 1)
       } else {
-        finalPrice = Number(plan.original_price_yearly)
+        finalPrice = plan.original_price_yearly ?? 0
         endedAt.setFullYear(startedAt.getFullYear() + 1)
       }
     }

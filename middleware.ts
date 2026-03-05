@@ -38,7 +38,6 @@ export async function middleware(req: NextRequest) {
     profileRole = String(profile?.role || 'user').toLowerCase()
   }
 
-  // ✅ Protect private routes
   if (
     !user &&
     (
@@ -51,7 +50,6 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL('/auth/signin', req.url))
   }
 
-  // ✅ Redirect contributor landing restriction
   if (pathname.startsWith('/become-contributor')) {
     if (profileRole !== 'user') {
       return NextResponse.redirect(new URL('/', req.url))
@@ -59,7 +57,7 @@ export async function middleware(req: NextRequest) {
   }
 
   // ✅ Auth routing
-  if (user && pathname.startsWith('/auth')) {
+  if (user) {
     if (profileRole === 'admin') {
       return NextResponse.redirect(new URL('/admin/dashboard', req.url))
     }
@@ -68,25 +66,12 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(new URL('/contributor/dashboard', req.url))
     }
 
-    return NextResponse.redirect(new URL('/dashboard', req.url))
-  }
-
-  // ✅ Homepage redirect for logged users
-  if (user && pathname === '/') {
-    if (profileRole === 'admin') {
-      return NextResponse.redirect(new URL('/admin/dashboard', req.url))
-    }
-
-    if (profileRole === 'contributor') {
-      return NextResponse.redirect(new URL('/contributor/dashboard', req.url))
-    }
-
-    return NextResponse.redirect(new URL('/dashboard', req.url))
+    return NextResponse.redirect(new URL('/', req.url))
   }
 
   return res
 }
 
 export const config = {
-  matcher: ['/', '/auth/:path*', '/admin/:path*', '/contributor/:path*', '/dashboard/:path*', '/become-contributor'],
+  matcher: ['/admin/:path*', '/contributor/:path*', '/dashboard/:path*', '/become-contributor'],
 }
