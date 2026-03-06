@@ -58,16 +58,16 @@ export async function middleware(req: NextRequest) {
 
   // ✅ Auth routing
   if (user) {
-    if (profileRole === 'admin') {
-      return NextResponse.redirect(new URL('/admin/dashboard', req.url))
-    }
 
-    if (profileRole === 'contributor') {
-      return NextResponse.redirect(new URL('/contributor/dashboard', req.url))
-    }
-
-    return NextResponse.redirect(new URL('/', req.url))
+  if (profileRole === 'admin' && !pathname.startsWith('/admin')) {
+    return NextResponse.redirect(new URL('/admin/dashboard', req.url))
   }
+
+  if (profileRole === 'contributor' && !pathname.startsWith('/contributor')) {
+    return NextResponse.redirect(new URL('/contributor/dashboard', req.url))
+  }
+
+}
 
   return res
 }
