@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useAuth } from '@/components/auth/AuthProvider'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
@@ -9,10 +10,8 @@ import NotificationBell from '@/components/notifications/NotificationBell'
 import Image from 'next/image'
 
 export default function Header() {
-
-  
+  const { user, loading: authLoading } = useAuth()
   const pathname = usePathname()
-  const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [isApprovedContributor, setIsApprovedContributor] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
@@ -63,50 +62,46 @@ export default function Header() {
     }
   }, [isMobileMenuOpen])
 
- useEffect(() => {
-  const {
-    data: { subscription },
-  } = supabase.auth.onAuthStateChange((_event, session) => {
-    setUser(session?.user ?? null)
-
-    if (!session?.user) {
-      setLoading(false)
+useEffect(() => {
+  if (!user) {
+    setIsAdmin(false)
+      setIsApprovedContributor(false)
       setUsername('')
       setAvatarUrl('')
-      setIsAdmin(false)
-      setIsApprovedContributor(false)
+      setLoading(false)
       return
-    }
-
-    if (session?.user) {
-      ;(async () => {
-        try {
-          const { data: profileData, error: profileError } = await supabase
-            .from('profiles')
-            .select('role, username, avatar_url')
-            .eq('id', session.user.id)
-            .maybeSingle()
-
-
-          if (profileData) {
-            setIsAdmin(profileData.role === 'admin')
-            setIsApprovedContributor(profileData.role === 'contributor')
-            setUsername(profileData.username)
-            setAvatarUrl(profileData.avatar_url)
-            setLoading(false)
-          }
-        } catch(error) {
-          console.log("Header Error: ", error)
-          setLoading(false)
-        }
-      })()
-    }
-  })
-
-  return () => {
-    subscription.unsubscribe()
   }
-}, [])
+
+  const loadProfile = async () => {
+    try {
+      const { data: profileData, error } = await supabase
+        .from('profiles')
+        .select('role, username, avatar_url')
+        .eq('id', user.id)
+        .maybeSingle()
+
+      if (error) {
+        console.log("Header Error:", error)
+        return
+      }
+
+      if (profileData) {
+        setIsAdmin(profileData.role === 'admin')
+        console.log("DATA PROFILE ROLE:  ", profileData.role)
+        setIsApprovedContributor(profileData.role === 'contributor')
+        setUsername(profileData.username || '')
+        setAvatarUrl(profileData.avatar_url || '')
+      }
+
+    } catch (error) {
+      console.log("Header Error:", error)
+    }
+
+    setLoading(false)
+  }
+
+  loadProfile()
+}, [user])
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -174,7 +169,6 @@ export default function Header() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
-    setUser(null)
     setIsDropdownOpen(false)
     router.push('/auth/signin')
 
@@ -471,7 +465,7 @@ export default function Header() {
                   {avatarUrl ? (
                     <img
                       src={avatarUrl}
-                      alt={username}
+                      alt={username.charAt(0).toUpperCase()}
                       className="w-9 h-9 xl:w-10 xl:h-10 rounded-full object-cover border-2 border-gray-300 dark:border-gray-600 flex-shrink-0"
                     />
 

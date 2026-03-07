@@ -7,15 +7,22 @@ import Footer from '@/components/layout/Footer'
 import LevelBadge from '@/components/contributor/LevelBadge'
 import { supabase } from '@/lib/supabaseClient'
 import type { Database } from '@/types/supabase'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@/components/auth/AuthProvider'
+
+
 
 type Profile = Database['public']['Tables']['profiles']['Row']
 type Subscription = Database['public']['Tables']['subscriptions']['Row']
+type ProfileWithAssets = Profile & { assets_uploaded?: number }
+
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<any>(null)
-  const [profile, setProfile] = useState<Profile | null>(null)
+  const { user, loading: authLoading } = useAuth()
+  const [profile, setProfile] = useState<ProfileWithAssets | null>(null)
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [loading, setLoading] = useState(true)
+  const router = useRouter()
   const [editing, setEditing] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
@@ -23,37 +30,39 @@ export default function ProfilePage() {
     avatar_url: '',
   })
 
-  useEffect(() => {
-    fetchData()
-  }, [])
-
   const fetchData = async () => {
     try {
-      const {
-        data: { user: currentUser },
-      } = await supabase.auth.getUser()
-
-      if (!currentUser) {
-        window.location.href = '/auth/signin'
+      
+      if(!user) {
+        setLoading(false)
         return
       }
 
-      setUser(currentUser)
+    
+
       setFormData({
-        name: currentUser.user_metadata?.full_name || '',
-        email: currentUser.email || '',
-        avatar_url: currentUser.user_metadata?.avatar_url || '',
+        name: user.user_metadata?.full_name || '',
+        email: user.email || '',
+        avatar_url: user.user_metadata?.avatar_url || '',
       })
 
       // Fetch profile
       const { data: profileData } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', currentUser.id)
+        .eq('id', user.id)
         .maybeSingle()
 
       if (profileData) {
-        setProfile(profileData)
+        const { count: assetCount } = await supabase
+          .from('assets')
+          .select('*', { count: 'exact', head: true })
+          .eq('contributor_id', user.id)
+
+        setProfile({
+            ...profileData,
+            assets_uploaded: assetCount ?? 0
+          })
         setFormData((prev) => ({
           ...prev,
           avatar_url: profileData.avatar_url || prev.avatar_url,
@@ -64,7 +73,7 @@ export default function ProfilePage() {
       const { data: subData } = await supabase
         .from('subscriptions')
         .select('*, subscription_plans(*)')
-        .eq('user_id', currentUser.id)
+        .eq('user_id', user.id)
         .eq('status', 'active')
         .single()
 
@@ -75,6 +84,12 @@ export default function ProfilePage() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    fetchData()
+  }, [user])
+
+  
 
   const handleSave = async () => {
     try {
@@ -113,7 +128,7 @@ export default function ProfilePage() {
   const handleSignOut = async () => {
     try {
       await supabase.auth.signOut()
-      window.location.href = '/'
+      router.replace('/')
     } catch (error) {
       console.error('Error signing out:', error)
       alert('Failed to sign out. Please try again.')
@@ -232,7 +247,7 @@ export default function ProfilePage() {
                           className="w-20 h-20 rounded-full object-cover"
                         />
                       ) : (
-                        <div className="w-20 h-20 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center text-white text-2xl font-bold">
+                        <div className="w-20 h-20 rounded-full bg-header flex items-center justify-center text-white text-2xl font-bold">
                           {formData.name?.[0]?.toUpperCase() || formData.email?.[0]?.toUpperCase() || 'U'}
                         </div>
                       )}
@@ -281,7 +296,7 @@ export default function ProfilePage() {
                     <p className="text-gray-600 dark:text-gray-400 mb-4">No active subscription</p>
                     <a
                       href="/pricing"
-                      className="inline-block px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all"
+                      className="inline-block px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-all"
                     >
                       View Plans
                     </a>
@@ -298,14 +313,14 @@ export default function ProfilePage() {
                   <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
                     Contributor Status
                   </h3>
-                  {profile.role === 'contributor' && profile.contributor_tier || profile.role === 'admin' ? (
+                  {(profile.role === 'contributor' && profile.contributor_tier) || profile.role === 'admin' ? (
                     <div className="space-y-3">
                       <LevelBadge level={profile.contributor_tier as any} size="md" />
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Total Earnings: <strong>N/A</strong>
+                        Total Earnings: <strong>{(profile?.lifetime_earnings_cents ?? 0) / 100}</strong>
                       </p>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Assets Uploaded: <strong>N/A</strong>
+                        Assets Uploaded: <strong>{profile?.assets_uploaded ?? 0}</strong>
                       </p>
                       <a
                         href="/contributor/dashboard"

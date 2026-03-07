@@ -63,6 +63,7 @@ export default function AssetEditForm({ asset }: AssetEditFormProps) {
       if (response.ok) {
         alert('Asset deleted successfully!')
         router.push('/admin/assets')
+        router.refresh()
       } else {
         const data = await response.json()
         alert(data.error || 'Failed to delete asset')

@@ -2,6 +2,8 @@ import { createUserSupabase } from '@/lib/supabaseServer'
 import Link from 'next/link'
 import { Suspense } from 'react'
 
+export const dynamic = 'force-dynamic'
+
 async function AssetsList({ status, type, category }: { status?: string; type?: string; category?: string }) {
 
   const supabase = createUserSupabase()
@@ -162,10 +164,10 @@ export default function AssetsPage({
       <div className="flex flex-wrap gap-2">
         <Link
           href="/admin/assets"
-          className={`px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors ${
+          className={`px-3 sm:px-4 py-2 hover:text-white hover:bg-blue-600 rounded-lg text-sm sm:text-base font-medium transition-colors ${
             !searchParams.status
               ? 'bg-blue-600 text-white'
-              : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700'
+              : 'bg-white text-gray-700 border border-gray-200'
           }`}
         >
           All

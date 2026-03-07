@@ -8,42 +8,42 @@ import Footer from '@/components/layout/Footer'
 import RelatedAssets from '@/components/marketplace/RelatedAssets'
 import { supabase } from '@/lib/supabaseClient'
 import type { Database } from '@/types/supabase'
+import { useAuth } from '@/components/auth/AuthProvider'
 
 type Asset = Database['public']['Tables']['assets']['Row']
 type Profile = Database['public']['Tables']['profiles']['Row']
 
 export default function AssetDetailPage({ params }: { params: { id: string } }) {
+  const { user, loading: authLoading } = useAuth()
   const [asset, setAsset] = useState<Asset | null>(null)
   const [contributor, setContributor] = useState<Profile | null>(null)
   const [relatedAssets, setRelatedAssets] = useState<Asset[]>([])
-  const [loading, setLoading] = useState(true)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false)
-  const [user, setUser] = useState<any>(null)
 
   useEffect(() => {
     fetchAsset()
-    checkSubscription()
   }, [params.id])
+
+  useEffect(() => {
+  checkSubscription()
+}, [user])
 
   const checkSubscription = async () => {
     try {
-      const {
-        data: { user: currentUser },
-      } = await supabase.auth.getUser()
 
-      if (!currentUser) {
+
+      if (!user) {
         setHasActiveSubscription(false)
         return
       }
 
-      setUser(currentUser)
 
       // Check for active subscription
       const { data: subscription } = await supabase
         .from('subscriptions')
         .select('id')
-        .eq('user_id', currentUser.id)
+        .eq('user_id', user.id)
         .eq('status', 'active')
         .single()
 
@@ -264,7 +264,7 @@ export default function AssetDetailPage({ params }: { params: { id: string } }) 
     }
   }
 
-  if (loading) {
+  if (authLoading) {
     return (
       <div className="min-h-screen bg-white">
         <Header />
@@ -418,7 +418,7 @@ export default function AssetDetailPage({ params }: { params: { id: string } }) 
                           window.location.href = `/pricing?redirect=${returnUrl}`
                         }
                       }}
-                      className="block w-full px-4 sm:px-6 py-3 sm:py-4 text-sm sm:text-base bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 text-center touch-manipulation active:scale-95"
+                      className="block w-full px-4 sm:px-6 py-3 sm:py-4 text-sm sm:text-base bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 text-center touch-manipulation active:scale-95"
                     >
                       {user ? 'View Subscription Plans' : 'Sign In to Subscribe'}
                     </button>

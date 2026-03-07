@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Header from '@/components/layout/Header'
@@ -8,85 +8,59 @@ import Footer from '@/components/layout/Footer'
 import AssetCard from '@/components/marketplace/AssetCard'
 import { supabase } from '@/lib/supabaseClient'
 import type { Database } from '@/types/supabase'
+import { useAuth } from '@/components/auth/AuthProvider'
+
 
 type Asset = Database['public']['Tables']['assets']['Row']
 
 export default function FavoritesPage() {
+  const { user, loading: authLoading } = useAuth()
   const [favoriteAssets, setFavoriteAssets] = useState<Asset[]>([])
   const [loading, setLoading] = useState(true)
-  const [user, setUser] = useState<any | null>(null)
 
-  useEffect(()=>{
-    const getUser = async () => {
-      const { data, error } = await supabase.auth.getUser()
+  const fetchFavoriteAssets = useCallback(async () => {
+  try {
+    if (!user) return
 
-      if(error || !data?.user) {
-        window.location.href = '/auth/signin'
-        return
-      }
-      setUser(data.user)
-    }
+    const { data: favorites } = await supabase
+      .from('favorites')
+      .select('asset_id')
+      .eq('user_id', user.id)
 
-    getUser()
-  }, [])
-
-  useEffect(() => {
-    if(!user) return
-
-    fetchFavoriteAssets()
-    
-    // Listen for custom event when favorites are updated
-    const handleFavoritesUpdate = () => {
-      fetchFavoriteAssets()
-    }
-    
-    // Listen for storage changes (when favorites are updated in other tabs)
-    const handleStorageChange = () => {
-      fetchFavoriteAssets()
-    }
-    
-    window.addEventListener('favoritesUpdated', handleFavoritesUpdate)
-    window.addEventListener('storage', handleStorageChange)
-    
-    return () => {
-      window.removeEventListener('favoritesUpdated', handleFavoritesUpdate)
-      window.removeEventListener('storage', handleStorageChange)
-    }
-  }, [user])
-
-  const fetchFavoriteAssets = async () => {
-    try {
-
-      const { data: favorites } = await supabase
-        .from('favorites')
-        .select('asset_id')
-        .eq('user_id', user.id)
-
-      if (!favorites || favorites.length === 0) {
-        setFavoriteAssets([])
-        setLoading(false)
-        return
-      }
-
-      const assetIds = favorites.map(f => f.asset_id)
-
-      const { data, error } = await supabase
-        .from('assets')
-        .select('*')
-        .in('id', assetIds)
-        .eq('status', 'approved')
-
-      if (error) throw error
-
-
-        setFavoriteAssets(data || [])
-      
-    } catch (error) {
-      console.error('Error fetching favorite assets:', error)
-    } finally {
+    if (!favorites || favorites.length === 0) {
+      setFavoriteAssets([])
       setLoading(false)
+      return
     }
+
+    const assetIds = favorites.map(f => f.asset_id)
+
+    const { data, error } = await supabase
+      .from('assets')
+      .select('*')
+      .in('id', assetIds)
+      .eq('status', 'approved')
+
+    if (error) throw error
+
+    setFavoriteAssets(data || [])
+
+  } catch (error) {
+    console.error('Error fetching favorite assets:', error)
+  } finally {
+    setLoading(false)
   }
+
+}, [user])
+
+ useEffect(() => {
+  if (!user) return
+
+  fetchFavoriteAssets()
+
+  
+
+}, [user, fetchFavoriteAssets])
 
   return (
     <div className="min-h-screen bg-white">

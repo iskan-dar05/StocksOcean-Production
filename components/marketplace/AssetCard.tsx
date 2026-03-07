@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { supabase } from '@/lib/supabaseClient'
+import { useAuth } from '@/components/auth/AuthProvider'
 
 interface AssetCardProps {
   asset: {
@@ -21,26 +22,10 @@ interface AssetCardProps {
 }
 
 export default function AssetCard({ asset }: AssetCardProps) {
+  const { user } = useAuth()
   const [isFavorite, setIsFavorite] = useState(false)
   const [contributor, setContributor] = useState<{ username: string | null; avatar_url: string | null; role: string | null } | null>(null)
-  const [user, setUser] = useState<any | null>(null)
 
-  // Load favorite status from localStorage
-
-  useEffect(() => {
-  const getUser = async () => {
-    const { data, error } = await supabase.auth.getUser()
-
-    if (error || !data?.user) {
-      window.location.href = '/auth/signin'
-      return
-    }
-
-    setUser(data.user)
-  }
-
-  getUser()
-}, [])
 
 
   useEffect(() => {
@@ -98,28 +83,35 @@ export default function AssetCard({ asset }: AssetCardProps) {
   }, [asset.contributor_id])
 
   const handleFavorite = async (e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    
-    try {      
-      if (isFavorite) {
-        setIsFavorite(false)
-        await supabase.from('favorites').delete().eq('user_id', user.id).eq('asset_id', asset.id)
-      } else {
-        setIsFavorite(true)
-        await supabase.from('favorites').insert({
+  e.preventDefault()
+  e.stopPropagation()
+
+  if (!user) {
+    window.location.href = '/auth/signin'
+    return
+  }
+
+  try {
+    if (isFavorite) {
+      setIsFavorite(false)
+      await supabase
+        .from('favorites')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('asset_id', asset.id)
+    } else {
+      setIsFavorite(true)
+      await supabase
+        .from('favorites')
+        .insert({
           user_id: user.id,
           asset_id: asset.id
         })
-      }
-      
-      // Dispatch custom event to notify other components
-      window.dispatchEvent(new CustomEvent('favoritesUpdated'))
-    } catch (error) {
-      console.error('Error saving favorite:', error)
     }
+  } catch (error) {
+    console.error(error)
   }
-
+}
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()

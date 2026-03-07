@@ -8,8 +8,11 @@ import Footer from '@/components/layout/Footer'
 import Notification from '@/components/ui/Notification'
 import { supabase } from '@/lib/supabaseClient'
 import * as Icons from "lucide-react"
+import { useAuth } from '@/components/auth/AuthProvider'
+
 
 export default function BecomeContributorPage() {
+  const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [applicationMessage, setApplicationMessage] = useState('')
@@ -26,7 +29,6 @@ export default function BecomeContributorPage() {
   useEffect(() => {
     const checkApplicationStatus = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser()
         if (!user) {
           setCheckingStatus(false)
           return
@@ -63,34 +65,17 @@ export default function BecomeContributorPage() {
     setNotification({ message: '', type: 'info', visible: false })
     
     try {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser()
-
-      if (userError || !user) {
-        setNotification({
+      if (!user) {
+          setNotification({
           message: 'You must be logged in to apply. Redirecting to sign in...',
           type: 'error',
           visible: true,
         })
-        setTimeout(() => {
+          setCheckingStatus(false)
+          setTimeout(() => {
           router.push('/auth/signin?redirect=/become-contributor')
         }, 2000)
-        return
-      }
-
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
-        setNotification({
-          message: 'Session expired. Please log in again.',
-          type: 'error',
-          visible: true,
-        })
-        setTimeout(() => {
-          router.push('/auth/signin?redirect=/become-contributor')
-        }, 2000)
-        return
+          return
       }
 
       const response = await fetch('/api/contributor/apply', {

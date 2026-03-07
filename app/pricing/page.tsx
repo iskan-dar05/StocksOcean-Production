@@ -6,20 +6,15 @@ import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import PricingCard from '@/components/marketplace/PricingCard'
 import { supabase } from '@/lib/supabaseClient'
+import { useAuth } from '@/components/auth/AuthProvider'
+
 
 export default function PricingPage() {
+  const { user, loading: authLoading } = useAuth()
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly')
   const [plans, setPlans] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [user, setUser] = useState<any>(null)
   const [isEligibleForSignupDiscount, setIsEligibleForSignupDiscount] = useState(false)
-
-
-
-  useEffect(() => {
-    fetchPlans()
-    checkUser()
-  }, [])
 
   const isWithin48Hours = (createdAt: string) => {
     const signupTime = new Date(createdAt).getTime()
@@ -29,56 +24,7 @@ export default function PricingPage() {
     return diffInHours <= 48
   } 
 
-
- const checkUser = async () => {
-  try {
-    const { data: { user: currentUser } } = await supabase.auth.getUser()
-    setUser(currentUser)
-
-    if (currentUser) {
-      if (isWithin48Hours(currentUser.created_at)) {
-        setIsEligibleForSignupDiscount(true)
-      }
-    }
-  } catch (error) {
-    setUser(null)
-  }
-}
-
-type billingPeriodType = 'monthly' | 'yearly'
-
-
-
-
-  const handleGetStarted = async (planId: string, billingPeriod: billingPeriod) => {    
-    if (!user) {
-      window.location.href = `/auth/signin?redirect=${encodeURIComponent(`/pricing?redirect=${encodeURIComponent(returnUrl)}`)}`
-    }
-
-    try{
-      const response = await fetch('/api/plans', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          plan_id: planId,
-          billing: billingPeriod
-        }),
-        credentials: 'include',
-      })
-
-
-      if(response.status === 200){
-        console.log(response)
-      }
-    }catch(error)
-    {
-      console.error(error)
-    }
-  }
-
-  const fetchPlans = async () => {
+   const fetchPlans = async () => {
     try {
       const { data, error } = await supabase
         .from('subscription_plans' as any)
@@ -108,8 +54,8 @@ type billingPeriodType = 'monthly' | 'yearly'
       // Fallback to hardcoded plans if fetch fails
       setPlans([
         {
-          id: 'bronze',
-          name: 'Bronze',
+          id: 'starter',
+          name: 'Starter',
           description: 'Perfect for individuals and small projects',
           originalPriceMonthly: 15,
           originalPriceYearly: 150,
@@ -125,8 +71,8 @@ type billingPeriodType = 'monthly' | 'yearly'
           isCustom: false,
         },
         {
-          id: 'silver',
-          name: 'Silver',
+          id: 'growth',
+          name: 'Growth',
           description: 'Best for professionals and growing teams',
           originalPriceMonthly: 25,
           originalPriceYearly: 250,
@@ -143,8 +89,8 @@ type billingPeriodType = 'monthly' | 'yearly'
           isCustom: false,
         },
         {
-          id: 'gold',
-          name: 'Gold',
+          id: 'unlimited',
+          name: 'Unlimited',
           description: 'For agencies and large teams',
           originalPriceMonthly: 50,
           originalPriceYearly: 500,
@@ -160,29 +106,57 @@ type billingPeriodType = 'monthly' | 'yearly'
           isPopular: false,
           isCustom: false,
         },
-        {
-          id: 'enterprise',
-          name: 'Enterprise',
-          description: 'Custom solutions for large organizations',
-          originalPriceMonthly: 0,
-          originalPriceYearly: 0,
-          firstMonthDiscount: 0,
-          monthlyDownloads: null,
-          features: [
-            'Everything in Gold',
-            'Legal rights',
-            'SSO integration',
-            'Dedicated support',
-            'Custom SLA',
-          ],
-          isPopular: false,
-          isCustom: true,
-        },
       ])
     } finally {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    fetchPlans()
+    if (isWithin48Hours(user?.created_at)) {
+      setIsEligibleForSignupDiscount(true)
+    }
+  }, [user])
+
+
+
+
+
+type billingPeriodType = 'monthly' | 'yearly'
+
+
+
+
+  const handleGetStarted = async (planId: string, billingPeriod: billingPeriod) => {    
+    if (!user) {
+      window.location.href = `/auth/signin?redirect=${encodeURIComponent(`/pricing?redirect=${encodeURIComponent('/pricing')}`)}`
+    }
+
+    try{
+      const response = await fetch('/api/plans', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          plan_id: planId,
+          billing: billingPeriod
+        }),
+        credentials: 'include',
+      })
+
+
+      if(response.status === 200){
+        console.log(response)
+      }
+    }catch(error)
+    {
+      console.error(error)
+    }
+  }
+
+ 
 
   const calculateFinalPrice = (
   originalPrice: number,
