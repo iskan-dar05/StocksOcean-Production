@@ -238,49 +238,28 @@ export default function UploadForm({ onSuccess, onError }: UploadFormProps) {
 
       // Upload file to Supabase Storage
       setUploadProgress(10)
-      
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('assets')
-        .upload(storagePath, selectedFile, {
-          cacheControl: '3600',
-          upsert: false,
-        })
-      console.log("CLIENT +++++============= 2")
 
-      if (uploadError) {
-        throw new Error(`Upload failed: ${uploadError.message}`)
-      }
+
 
       setUploadProgress(60)
 
-      // Get public URL for preview (if image)
-      let previewPath: string | null = null
-      if (fileType === 'image') {
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from('assets').getPublicUrl(storagePath)
-        previewPath = publicUrl
-      }
-
       setUploadProgress(70)
+
+      const uploadData = new FormData()
+
+      uploadData.append("file", selectedFile)
+      uploadData.append("title", formData.title.trim())
+      uploadData.append("description", formData.description.trim() || "")
+      uploadData.append("type", fileType)
+      uploadData.append("license", formData.license)
+      uploadData.append("category", formData.category || "")
+      uploadData.append("tags", JSON.stringify(formData.tags))
 
       // Create asset record via API
       const response = await fetch('/api/assets/create', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          title: formData.title.trim(),
-          description: formData.description.trim() || null,
-          type: fileType,
-          storage_path: storagePath,
-          preview_path: previewPath,
-          price: 0,
-          license: formData.license,
-          tags: formData.tags,
-          category: formData.category || null,
-        }),
+        
+        body: uploadData
       })
 
       setUploadProgress(90)

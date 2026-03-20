@@ -36,6 +36,8 @@ export async function middleware(req: NextRequest) {
       .maybeSingle()
 
     profileRole = String(profile?.role || 'user').toLowerCase()
+
+    console.log("PROFILE ROLE FROM MIDDLEWARE: ", profileRole)
   }
 
   if (
@@ -73,5 +75,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/contributor/:path*', '/dashboard/:path*', '/become-contributor'],
+  matcher: ['/', '/admin/:path*', '/contributor/:path*', '/dashboard/:path*', '/become-contributor'],
 }

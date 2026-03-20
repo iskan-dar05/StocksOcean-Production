@@ -111,6 +111,14 @@ export default function SignUpPage() {
           >
             Log in
           </button>
+          <p>
+           <Link
+              href="/auth/forgot-password"
+              className="text-header font-normal hover:text-header hover:underline"
+            >
+              Forgot Password?
+          </Link>
+        </p>
         </form>
 
         {/* OAuth */}
@@ -130,8 +138,7 @@ export default function SignUpPage() {
           </button>
         </div>
 
-        <div className="mt-4 text-center text-gray-400">
-          
+        <div className="mt-4 text-center text-gray-400">    
           <p className="text-sm text-gray-400">
             I don’t have an account?{' '}
             <Link

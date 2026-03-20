@@ -7,6 +7,7 @@ import Footer from '@/components/layout/Footer'
 import PricingCard from '@/components/marketplace/PricingCard'
 import { supabase } from '@/lib/supabaseClient'
 import { useAuth } from '@/components/auth/AuthProvider'
+import toast from 'react-hot-toast'
 
 
 export default function PricingPage() {
@@ -148,11 +149,11 @@ type billingPeriodType = 'monthly' | 'yearly'
 
 
       if(response.status === 200){
-        console.log(response)
+        toast.success("Plan purchased successfully")
       }
     }catch(error)
     {
-      console.error(error)
+      toast.error(error.message)
     }
   }
 

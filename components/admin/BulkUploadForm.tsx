@@ -73,89 +73,68 @@ export default function BulkUploadForm() {
     })
   }
 
-  const handleBulkUpload = async () => {
-    if (files.length === 0) {
-      setError('Please select files to upload')
-      return
-    }
+ 
 
-    setUploading(true)
-    setError(null)
-    setSuccessCount(0)
-    setProgress({})
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        throw new Error('You must be logged in')
-      }
-
-      for (let i = 0; i < files.length; i++) {
-        const bulkFile = files[i]
-        try {
-          setProgress((prev) => ({ ...prev, [i]: 10 }))
-
-          // Determine file type
-          const fileExt = bulkFile.file.name.split('.').pop()?.toLowerCase()
-          let fileType = 'image'
-          if (fileExt === 'mp4') fileType = 'video'
-          if (fileExt === 'glb') fileType = '3d'
-
-          // Upload file
-          const timestamp = Date.now()
-          const sanitizedFilename = bulkFile.file.name.replace(/[^a-zA-Z0-9.-]/g, '_')
-          const filePath = `assets/admin/${fileType}/${timestamp}-${sanitizedFilename}`
-
-          setProgress((prev) => ({ ...prev, [i]: 30 }))
-
-          const { error: uploadError } = await supabase.storage
-            .from('assets')
-            .upload(filePath, bulkFile.file)
-
-          if (uploadError) throw uploadError
-
-          setProgress((prev) => ({ ...prev, [i]: 60 }))
-
-          // Get public URL
-          const { data: { publicUrl } } = supabase.storage.from('assets').getPublicUrl(filePath)
-
-          // Create asset record
-          const { error: insertError } = await supabase.from('assets').insert({
-            title: bulkFile.title,
-            description: bulkFile.description || null,
-            type: fileType,
-            category: bulkFile.category || null,
-            price: 0,
-            tags: bulkFile.tags.split(',').map((t) => t.trim()).filter(Boolean),
-            storage_path: filePath,
-            preview_path: fileType === 'image' ? publicUrl : null,
-            is_demo: bulkFile.is_demo,
-            is_featured: bulkFile.is_featured,
-            status: 'approved',
-            contributor_id: null,
-          })
-
-          if (insertError) throw insertError
-
-          setProgress((prev) => ({ ...prev, [i]: 100 }))
-          setSuccessCount((prev) => prev + 1)
-        } catch (err: any) {
-          console.error(`Error uploading file ${i + 1}:`, err)
-          setError(`Error uploading ${bulkFile.file.name}: ${err.message}`)
-        }
-      }
-
-      if (successCount === files.length - 1) {
-        setTimeout(() => {
-          router.push('/admin/assets')
-        }, 2000)
-      }
-    } catch (err: any) {
-      setError(err.message || 'Bulk upload failed')
-    } finally {
-      setUploading(false)
-    }
+const handleBulkUpload = async () => {
+  if (files.length === 0) {
+    setError('Please select files to upload')
+    return
   }
+
+  setUploading(true)
+  setError(null)
+  setSuccessCount(0)
+  setProgress({})
+
+  try {
+    for (let i = 0; i < files.length; i++) {
+      const bulkFile = files[i]
+      try {
+        setProgress((prev) => ({ ...prev, [i]: 10 }))
+
+        // Prepare FormData for API
+        const formData = new FormData()
+        formData.append("file", bulkFile.file)
+        formData.append("title", bulkFile.title)
+        formData.append("description", bulkFile.description || "")
+        formData.append("category", bulkFile.category || "")
+        formData.append("tags", JSON.stringify(bulkFile.tags.split(',').map(t => t.trim()).filter(Boolean)))
+        formData.append("type", bulkFile.file.type.startsWith("video/") ? "video" : bulkFile.file.type.startsWith("image/") ? "image" : "other")
+        formData.append("license", "standard") // or whatever your default is
+
+        setProgress((prev) => ({ ...prev, [i]: 30 }))
+
+        // Call your API
+        const res = await fetch('/api/assets/create', {
+          method: 'POST',
+          body: formData,
+        })
+
+        if (!res.ok) {
+          const data = await res.json()
+          throw new Error(data.error || 'Upload failed')
+        }
+
+        setProgress((prev) => ({ ...prev, [i]: 100 }))
+        setSuccessCount((prev) => prev + 1)
+      } catch (err: any) {
+        console.error(`Error uploading file ${bulkFile.file.name}:`, err)
+        setError(`Error uploading ${bulkFile.file.name}: ${err.message}`)
+      }
+    }
+
+    // Redirect after all uploads succeed
+    if (successCount === files.length) {
+      setTimeout(() => router.push('/admin/assets'), 1500)
+    }
+  } catch (err: any) {
+    setError(err.message || 'Bulk upload failed')
+  } finally {
+    setUploading(false)
+  }
+}
+
+
 
   return (
     <div className="space-y-6">
@@ -192,7 +171,7 @@ export default function BulkUploadForm() {
           onClick={() => fileInputRef.current?.click()}
           className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
-          Select Multiple Files
+            Select Multiple Files
         </button>
       </div>
 

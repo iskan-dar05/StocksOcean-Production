@@ -9,6 +9,7 @@ import RelatedAssets from '@/components/marketplace/RelatedAssets'
 import { supabase } from '@/lib/supabaseClient'
 import type { Database } from '@/types/supabase'
 import { useAuth } from '@/components/auth/AuthProvider'
+import toast from 'react-hot-toast'
 
 type Asset = Database['public']['Tables']['assets']['Row']
 type Profile = Database['public']['Tables']['profiles']['Row']
@@ -20,6 +21,7 @@ export default function AssetDetailPage({ params }: { params: { id: string } }) 
   const [relatedAssets, setRelatedAssets] = useState<Asset[]>([])
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
     fetchAsset()
@@ -125,33 +127,44 @@ export default function AssetDetailPage({ params }: { params: { id: string } }) 
 
 
   const handleDownload = async () => {
-    if (!user) {
-      // Redirect to login with return URL
-      const returnUrl = encodeURIComponent(`/asset/${params.id}`)
-      window.location.href = `/auth/signin?redirect=${returnUrl}`
-      return
-    }
-    
-    // Check if user has active subscription
-    if (!hasActiveSubscription) {
-      // Redirect to pricing page with return URL
-      const returnUrl = encodeURIComponent(`/asset/${params.id}`)
-      window.location.href = `/pricing?redirect=${returnUrl}`
-      return
-    }
-    
-    // TODO: Implement download functionality
-    if (previewUrl) {
-      const link = document.createElement('a')
-      link.href = previewUrl
-      link.download = asset?.title || 'asset'
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-    } else {
-      alert('Download functionality coming soon!')
-    }
+  if (!user) {
+    const returnUrl = encodeURIComponent(`/asset/${params.id}`)
+    window.location.href = `/auth/signin?redirect=${returnUrl}`
+    return
   }
+
+  if (!hasActiveSubscription) {
+    const returnUrl = encodeURIComponent(`/asset/${params.id}`)
+    window.location.href = `/pricing?redirect=${returnUrl}`
+    return
+  }
+
+  const toastId = toast.loading("Preparing download...")
+
+  try {
+    const res = await fetch('/api/assets/download', {
+      method: 'POST',
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ assetId: params.id })
+    })
+
+    const data = await res.json()
+
+    if (data.url) {
+      toast.success("Download started", { id: toastId })
+
+      window.location.href = data.url
+
+    } else {
+      toast.error(data.error || "Download failed", { id: toastId })
+    }
+
+  } catch (error) {
+    toast.error("Error downloading file", { id: toastId })
+  }
+}
 
   const handleFreeDownload = async () => {
     if (!previewUrl || !asset) return

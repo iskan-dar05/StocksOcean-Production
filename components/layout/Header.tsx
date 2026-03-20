@@ -314,14 +314,14 @@ useEffect(() => {
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="px-4 xs:px-5 sm:px-5 md:px-6 py-3 xs:py-3.5 sm:py-4 text-center rounded-lg xs:rounded-xl text-sm xs:text-base sm:text-lg font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors touch-manipulation min-h-[44px] xs:min-h-[48px] flex items-center justify-center"
               >
-                Sign In
+                Log in
               </Link>
               <Link
                 href="/auth/signup"
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="px-4 xs:px-5 sm:px-5 md:px-6 py-3 xs:py-3.5 sm:py-4 text-center rounded-lg xs:rounded-xl text-sm xs:text-base sm:text-lg font-medium bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 transition-all shadow-md touch-manipulation min-h-[44px] xs:min-h-[48px] flex items-center justify-center"
               >
-                Sign Up
+                Register
               </Link>
             </div>
           )}
@@ -335,7 +335,7 @@ useEffect(() => {
                     {avatarUrl ? (
                       <img
                         src={avatarUrl}
-                        alt={username}
+                        alt={username.charAt(0).toUpperCase()}
                         className="w-10 h-10 xs:w-12 xs:h-12 sm:w-14 sm:h-14 rounded-full object-cover border-2 border-gray-300 dark:border-gray-600 flex-shrink-0"
                       />
                     ) : (
@@ -421,7 +421,7 @@ useEffect(() => {
   return (
     <>
       <header ref={headerRef} className="sticky top-0 z-[130] backdrop-blur-md border-b border-gray-200 shadow-sm w-full">
-        <nav className="hidden lg:flex items-center justify-between w-full max-w-[100vw] bg-background mx-auto px-2 xs:px-3 sm:px-4 md:px-5 lg:px-6 lg:min-h-[80px] relative z-[150]">
+        <nav className="hidden lg:flex items-center justify-between w-full max-w-[100vw] bg-background mx-auto px-2 xs:px-3 sm:px-4 md:px-5 lg:px-6 lg:py-2 2xl:py-4 relative z-[150]">
           <div>
             <img 
               src="/logo.png" 
@@ -483,11 +483,11 @@ useEffect(() => {
                     onClick={(e) => e.stopPropagation()}
                   >
                     {/* Username */}
-                    <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                    <div className="px-4 py-3 border-b border-gray-200 border-gray-700 max-w-full">
+                      <p className="text-sm font-semibold text-gray-900">
                         {username}
                       </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      <p className="text-xs text-gray-500 mt-1 truncate">
                         {user.email}
                       </p>
                     </div>
@@ -658,7 +658,7 @@ useEffect(() => {
           
 
         </nav>
-        <nav className="w-full max-w-[100vw] bg-background mx-auto px-2 xs:px-3 sm:px-4 md:px-5 bg-header lg:px-6 py-2.5 xs:py-3 sm:py-3.5 md:py-4 relative z-[100]">
+        <nav className="w-full max-w-[100vw] bg-background mx-auto px-2 xs:px-3 sm:px-4 md:px-5 bg-header lg:px-6 py-2.5 xs:py-3 sm:py-3.5 md:py-2 relative z-[100]">
           <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-2.5 md:gap-3 sm:justify-between relative w-full min-w-0 z-[130]">
           {/* Mobile Menu Button - Hidden on Desktop */}  
           <div className="flex items-center gap-3">
@@ -787,7 +787,7 @@ useEffect(() => {
             isSearchFocused ? 'opacity-0 w-0 overflow-hidden max-w-0' : 'opacity-100'
           }`}>
             {loading ? (
-              <div className="w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 border-2 border-gray-300 dark:border-gray-600 border-t-blue-600 rounded-full animate-spin flex-shrink-0"></div>
+              <div className="w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin flex-shrink-0"></div>
             ) : user ? (
               <div className="flex items-center gap-1.5 xs:gap-2 min-w-0">
                 <div className="flex-shrink-0">
@@ -797,11 +797,11 @@ useEffect(() => {
                   {avatarUrl ? (
                     <img
                       src={avatarUrl}
-                      alt={username}
-                      className="w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 rounded-full object-cover border-2 border-gray-300 dark:border-gray-600 flex-shrink-0"
+                      alt={username.charAt(0).toUpperCase()}
+                      className="w-8 h-8 xs:w-9 text-white xs:h-9 sm:w-10 sm:h-10 rounded-full object-cover border-2 border-gray-300 text-center flex-shrink-0"
                     />
                   ) : (
-                    <div className="w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center text-white font-semibold text-xs xs:text-sm sm:text-base border-2 border-gray-300 dark:border-gray-600 flex-shrink-0">
+                    <div className="w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white font-semibold text-xs xs:text-sm sm:text-base border-2 border-gray-300 flex-shrink-0">
                       {username.charAt(0).toUpperCase()}
                     </div>
                   )}

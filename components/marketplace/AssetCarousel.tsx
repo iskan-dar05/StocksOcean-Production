@@ -58,7 +58,7 @@ export default function AssetCarousel({
     if (asset.preview_path) return asset.preview_path
     if (asset.type === 'image' && asset.storage_path) {
       try {
-        const { data } = supabase.storage.from('assets').getPublicUrl(asset.storage_path)
+        const { data } = supabase.storage.from('assets').getPublicUrl(asset.preview_path)
         return data.publicUrl
       } catch (error) {
         console.error('Error getting preview URL:', error)
@@ -71,9 +71,9 @@ export default function AssetCarousel({
   if (assets.length === 0) return null
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full flex-1">
       <div
-        className="overflow-hidden rounded-2xl"
+        className="overflow-hidden flex-1 lg:h-[400px] rounded-2xl"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}

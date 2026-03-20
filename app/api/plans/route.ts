@@ -3,6 +3,8 @@ import { createUserSupabase, createClient } from '@/lib/supabaseServer'
 
 
 
+
+
 const isWithin48Hours = (createdAt: string) => {
 	const signupTime = new Date(createdAt).getTime()
 
@@ -57,6 +59,7 @@ export async function POST(request: NextRequest) {
     // Determine price and end date
     let endedAt = new Date(startedAt)
     let finalPrice: number
+    let downloads_limit: number
 
     if (isWithin48Hours(user.created_at)) {
       // First-month discount
@@ -65,21 +68,25 @@ export async function POST(request: NextRequest) {
             plan.original_price_monthly,
             plan.first_month_discount_percent
           )
+        downloads_limit = plan.monthly_downloads
         endedAt.setMonth(startedAt.getMonth() + 1)
       } else {
         finalPrice = calculateFinalPrice(
             plan.original_price_yearly,
             plan.first_month_discount_percent
           )
+        downloads_limit = plan.yearly_downloads
         endedAt.setFullYear(startedAt.getFullYear() + 1)
       }
     } else {
       // Normal price
       if (billing === 'monthly') {
         finalPrice = plan.original_price_monthly ?? 0
+        downloads_limit = plan.monthly_downloads
         endedAt.setMonth(startedAt.getMonth() + 1)
       } else {
         finalPrice = plan.original_price_yearly ?? 0
+        downloads_limit = plan.yearly_downloads
         endedAt.setFullYear(startedAt.getFullYear() + 1)
       }
     }
@@ -91,6 +98,8 @@ export async function POST(request: NextRequest) {
         user_id: user.id,
         plan_id: plan.id,
         status: 'active',
+        downloads_limit: downloads_limit,
+        price: finalPrice,
         started_at: startedAt.toISOString(),
         ends_at: endedAt.toISOString()
       })

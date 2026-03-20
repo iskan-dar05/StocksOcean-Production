@@ -133,14 +133,14 @@ export default function ContributorUploadPage() {
 
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 border border-gray-200 dark:border-gray-700">
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-6">
+          <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-200">
+            <h1 className="text-4xl font-bold text-gray-900 mb-6">
               Upload Asset
             </h1>
 
             {successMessage && (
-              <div className="mb-6 bg-green-50 dark:bg-green-900/20 border-2 border-green-200 dark:border-green-800 rounded-xl p-4">
-                <p className="text-sm text-green-800 dark:text-green-200">
+              <div className="mb-6 bg-green-50 border-2 border-green-200 rounded-xl p-4">
+                <p className="text-sm text-green-800">
                   {successMessage}
                 </p>
               </div>

@@ -80,60 +80,70 @@ export default function Home() {
         )}
 
         {/* Hero Section */}
-        <section className="container-fluid py-8 sm:py-12 md:py-16 lg:py-24 xl:py-32">
-          <div className="text-center max-w-5xl mx-auto px-4">
-            <h1 className="heading-responsive font-bold text-header mb-4 sm:mb-6 md:mb-8">
-              Discover Premium {" "}
-              <br className="hidden xs:block" />
-              <span className="text-header">
-                Digital Assets
-              </span>
-            </h1>
-            <p className="text-responsive text-secondary mb-6 sm:mb-8 md:mb-10 max-w-3xl mx-auto">
-              High-quality images, videos, and 3D objects for your creative projects. Join our
-              marketplace as a buyer or contributor.
-            </p>
-            <div className="flex gap-3 sm:gap-4 justify-center items-stretch xs:items-center px-4">
-              <button
-                onClick={() => scrollToSection('browse-section')}
-                className="px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base bg-white border border-header text-primary rounded-xl font-semibold  transition-all transform hover:-translate-y-1 active:scale-95"
-              >
-                Browse Assets
-              </button>
-              {!isApprovedContributor && (
-                <Link
-                  href="/become-contributor"
-                  className="px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base bg-header text-white rounded-xl hover:text-header hover:bg-white hover:border hover:border-header transition-all active:scale-95 text-center"
-                >
-                  Become a Contributor
-                </Link>
-              )}
-            </div>
-          </div>
-        </section>
+        <section
+      style={{ backgroundImage: "url('/hero.png')" }}
+      className="flex-1 relative bg-cover bg-center py-4 sm:py-5 md:py-10 lg:py-24 mt-10 bg-no-repeat flex items-center justify-center"
+    >
+      {/* Optional dark overlay */}
+      <div className="absolute inset-0 bg-black/50"></div>
 
-        {/* Featured Assets Carousel */}
-        {!loading && featuredAssets.length > 0 && (
-          <section className="container mx-auto px-4 py-8 sm:py-12 md:py-16">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.6 }}
-              className="text-center mb-8 sm:mb-10 md:mb-12"
+      <div className="relative z-10 text-center px-4">
+        <h1 className="heading-responsive font-bold text-white mb-4 sm:mb-6 md:mb-8 text-md sm:text-2xl md:text-3xl lg:text-5xl">
+          Discover Premium <br className="hidden xs:block" />
+          <span className="text-white">Digital Assets</span>
+        </h1>
+        <p className="text-responsive text-gray-300 mb-6 sm:mb-8 md:mb-10 max-w-3xl mx-auto text-[6px] sm:text-sm md:text-md lg:text-lg">
+          High-quality images, videos, and 3D objects for your creative projects. Join our
+          marketplace as a buyer or contributor.
+        </p>
+        <div className="flex gap-3 sm:gap-4 justify-center items-stretch xs:items-center px-4">
+          <button
+            onClick={() => scrollToSection('browse-section')}
+            className="px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base bg-white border border-header text-primary rounded-xl font-semibold  transition-all transform hover:-translate-y-1 active:scale-95"
+          >
+            Browse Assets
+          </button>
+          {!isApprovedContributor && (
+            <Link
+              href="/become-contributor"
+              className="px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base bg-header text-white rounded-xl hover:text-header hover:bg-white hover:border hover:border-header transition-all active:scale-95 text-center"
             >
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2 sm:mb-4">
-                Featured Assets
-              </h2>
-              <p className="text-sm sm:text-base md:text-3xl font-semibold text-header px-4">
-                Explore our handpicked selection of premium digital assets
-              </p>
-            </motion.div>
+              Become a Contributor
+            </Link>
+          )}
+        </div>
+      </div>
+    </section>
 
-            <div className="max-w-5xl mx-auto">
-              <AssetCarousel assets={featuredAssets.slice(0, 5)} />
-            </div>
-          </section>
-        )}
+        {/* Featured Assets Hero Section */}
+{!loading && featuredAssets.length > 0 && (
+  <section
+    id="featured-hero"
+    className="flex-1 relative flex flex-col items-center py-3 sm:py-4 md:py-6 lg:py-6 justify-center px-4"
+  >
+
+    <div className="relative z-10 text-center max-w-5xl w-full">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="mb-8"
+      >
+        <h2 className="text-2xl sm:text-3xl md:text-3xl font-bold text-header mb-4">
+          Featured Assets
+        </h2>
+        <p className="text-lg sm:text-xl md:text-2xl text-gray-400 mb-8">
+          Explore our handpicked selection of premium digital assets
+        </p>
+      </motion.div>
+
+      {/* Carousel */}
+      <div className="max-w-5xl mx-auto">
+        <AssetCarousel assets={featuredAssets.slice(0, 5)} />
+      </div>
+    </div>
+  </section>
+)}
 
         {/* How It Works Section */}
 <section className="container mx-auto px-4 py-8 sm:py-12 md:py-16 bg-header rounded-2xl sm:rounded-3xl my-8 sm:my-12 md:my-16">

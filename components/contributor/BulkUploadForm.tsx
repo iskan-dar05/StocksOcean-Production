@@ -8,12 +8,14 @@ interface BulkFile {
   file: File
   title: string
   description: string
+  category: string
   tags: string
-  license: string
+  is_demo: boolean
+  is_featured: boolean
   preview?: string
 }
 
-export default function ContributorBulkUploadForm() {
+export default function BulkUploadForm() {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [files, setFiles] = useState<BulkFile[]>([])
@@ -26,6 +28,11 @@ export default function ContributorBulkUploadForm() {
     const selectedFiles = Array.from(e.target.files || [])
     
     const newFiles: BulkFile[] = selectedFiles.map((file) => {
+      const fileExt = file.name.split('.').pop()?.toLowerCase()
+      let fileType = 'image'
+      if (fileExt === 'mp4') fileType = 'video'
+      if (fileExt === 'glb') fileType = '3d'
+
       // Generate preview for images
       let preview: string | undefined
       if (file.type.startsWith('image/')) {
@@ -36,8 +43,10 @@ export default function ContributorBulkUploadForm() {
         file,
         title: file.name.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' '),
         description: '',
+        category: '',
         tags: '',
-        license: 'standard',
+        is_demo: false,
+        is_featured: false,
         preview,
       }
     })
@@ -64,98 +73,68 @@ export default function ContributorBulkUploadForm() {
     })
   }
 
-  const handleBulkUpload = async () => {
-    if (files.length === 0) {
-      setError('Please select files to upload')
-      return
-    }
+ 
 
-    setUploading(true)
-    setError(null)
-    setSuccessCount(0)
-    setProgress({})
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        throw new Error('You must be logged in')
-      }
-
-      for (let i = 0; i < files.length; i++) {
-        const bulkFile = files[i]
-        try {
-          setProgress((prev) => ({ ...prev, [i]: 10 }))
-
-          // Determine file type
-          const fileExt = bulkFile.file.name.split('.').pop()?.toLowerCase()
-          let fileType = 'image'
-          if (fileExt === 'mp4') fileType = 'video'
-          if (fileExt === 'glb') fileType = '3d'
-
-          // Upload file
-          const timestamp = Date.now()
-          const sanitizedFilename = bulkFile.file.name.replace(/[^a-zA-Z0-9.-]/g, '_')
-          const storagePath = `contributors/${user.id}/${timestamp}-${sanitizedFilename}`
-
-          setProgress((prev) => ({ ...prev, [i]: 30 }))
-
-          const { error: uploadError } = await supabase.storage
-            .from('assets')
-            .upload(storagePath, bulkFile.file)
-
-          if (uploadError) throw uploadError
-
-          setProgress((prev) => ({ ...prev, [i]: 60 }))
-
-          // Get public URL for preview
-          let previewPath: string | null = null
-          if (fileType === 'image') {
-            const { data: { publicUrl } } = supabase.storage.from('assets').getPublicUrl(storagePath)
-            previewPath = publicUrl
-          }
-
-          setProgress((prev) => ({ ...prev, [i]: 80 }))
-
-          // Create asset record via API
-          const response = await fetch('/api/assets/create', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              title: bulkFile.title,
-              description: bulkFile.description || null,
-              type: fileType,
-              storage_path: storagePath,
-              preview_path: previewPath,
-              price: 0,
-              license: bulkFile.license,
-              tags: bulkFile.tags.split(',').map((t) => t.trim()).filter(Boolean),
-            }),
-          })
-
-          if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}))
-            throw new Error(errorData.error || 'Failed to create asset')
-          }
-
-          setProgress((prev) => ({ ...prev, [i]: 100 }))
-          setSuccessCount((prev) => prev + 1)
-        } catch (err: any) {
-          console.error(`Error uploading file ${i + 1}:`, err)
-          setError(`Error uploading ${bulkFile.file.name}: ${err.message}`)
-        }
-      }
-
-      if (successCount === files.length - 1) {
-        setTimeout(() => {
-          router.push('/contributor/dashboard')
-        }, 2000)
-      }
-    } catch (err: any) {
-      setError(err.message || 'Bulk upload failed')
-    } finally {
-      setUploading(false)
-    }
+const handleBulkUpload = async () => {
+  if (files.length === 0) {
+    setError('Please select files to upload')
+    return
   }
+
+  setUploading(true)
+  setError(null)
+  setSuccessCount(0)
+  setProgress({})
+
+  try {
+    for (let i = 0; i < files.length; i++) {
+      const bulkFile = files[i]
+      try {
+        setProgress((prev) => ({ ...prev, [i]: 10 }))
+
+        // Prepare FormData for API
+        const formData = new FormData()
+        formData.append("file", bulkFile.file)
+        formData.append("title", bulkFile.title)
+        formData.append("description", bulkFile.description || "")
+        formData.append("category", bulkFile.category || "")
+        formData.append("tags", JSON.stringify(bulkFile.tags.split(',').map(t => t.trim()).filter(Boolean)))
+        formData.append("type", bulkFile.file.type.startsWith("video/") ? "video" : bulkFile.file.type.startsWith("image/") ? "image" : "other")
+        formData.append("license", "standard") // or whatever your default is
+
+        setProgress((prev) => ({ ...prev, [i]: 30 }))
+
+        // Call your API
+        const res = await fetch('/api/assets/create', {
+          method: 'POST',
+          body: formData,
+        })
+
+        if (!res.ok) {
+          const data = await res.json()
+          throw new Error(data.error || 'Upload failed')
+        }
+
+        setProgress((prev) => ({ ...prev, [i]: 100 }))
+        setSuccessCount((prev) => prev + 1)
+      } catch (err: any) {
+        console.error(`Error uploading file ${bulkFile.file.name}:`, err)
+        setError(`Error uploading ${bulkFile.file.name}: ${err.message}`)
+      }
+    }
+
+    // Redirect after all uploads succeed
+    if (successCount === files.length) {
+      setTimeout(() => router.push('/admin/assets'), 1500)
+    }
+  } catch (err: any) {
+    setError(err.message || 'Bulk upload failed')
+  } finally {
+    setUploading(false)
+  }
+}
+
+
 
   return (
     <div className="space-y-6">
@@ -192,7 +171,7 @@ export default function ContributorBulkUploadForm() {
           onClick={() => fileInputRef.current?.click()}
           className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
-          Select Multiple Files
+            Select Multiple Files
         </button>
       </div>
 
@@ -209,7 +188,7 @@ export default function ContributorBulkUploadForm() {
                     <img src={bulkFile.preview} alt="Preview" className="w-full h-32 object-cover rounded" />
                   ) : (
                     <div className="w-full h-32 bg-gray-200 dark:bg-gray-700 rounded flex items-center justify-center">
-                      <span className="text-gray-400 text-sm">{bulkFile.file.name}</span>
+                      <span className="text-gray-400">{bulkFile.file.name}</span>
                     </div>
                   )}
                   <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 truncate">
@@ -241,30 +220,14 @@ export default function ContributorBulkUploadForm() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Description
+                      Category
                     </label>
-                    <textarea
-                      value={bulkFile.description}
-                      onChange={(e) => updateFile(index, { description: e.target.value })}
-                      rows={2}
+                    <input
+                      type="text"
+                      value={bulkFile.category}
+                      onChange={(e) => updateFile(index, { category: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
                     />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      License
-                    </label>
-                    <select
-                      value={bulkFile.license}
-                      onChange={(e) => updateFile(index, { license: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
-                    >
-                      <option value="standard">Standard</option>
-                      <option value="extended">Extended</option>
-                      <option value="editorial">Editorial</option>
-                      <option value="free">Free</option>
-                    </select>
                   </div>
 
                   <div>
@@ -280,13 +243,33 @@ export default function ContributorBulkUploadForm() {
                     />
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => removeFile(index)}
-                    className="text-red-600 hover:text-red-700 dark:text-red-400 text-sm"
-                  >
-                    Remove
-                  </button>
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={bulkFile.is_demo}
+                        onChange={(e) => updateFile(index, { is_demo: e.target.checked })}
+                        className="rounded"
+                      />
+                      <span className="text-gray-700 dark:text-gray-300">Demo</span>
+                    </label>
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={bulkFile.is_featured}
+                        onChange={(e) => updateFile(index, { is_featured: e.target.checked })}
+                        className="rounded"
+                      />
+                      <span className="text-gray-700 dark:text-gray-300">Featured</span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => removeFile(index)}
+                      className="ml-auto text-red-600 hover:text-red-700 dark:text-red-400 text-sm"
+                    >
+                      Remove
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
