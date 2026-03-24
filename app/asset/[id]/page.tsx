@@ -154,8 +154,12 @@ export default function AssetDetailPage({ params }: { params: { id: string } }) 
 
     if (data.url) {
       toast.success("Download started", { id: toastId })
-
-      window.location.href = data.url
+      const link = document.createElement('a')
+      link.href = data.url
+      link.download = `${asset?.title || 'asset'}`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
 
     } else {
       toast.error(data.error || "Download failed", { id: toastId })

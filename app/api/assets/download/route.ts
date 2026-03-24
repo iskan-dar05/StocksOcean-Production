@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createUserSupabase, createClient } from '@/lib/supabaseServer'
+import { supabaseAdmin } from '@/lib/supabaseAdmin'
 
 function getRemainingDownloads(downloadsUsed: number, downloadLimit: number) {
   return downloadLimit - downloadsUsed
@@ -16,7 +17,7 @@ export async function POST(request: NextRequest) {
     const { assetId } = await request.json()
 
     const user = await createClient()
-    const supabase = createUserSupabase()
+    const supabase = supabaseAdmin
 
     // console.log("USER USER:: from download route.ts: ", user)
 
@@ -68,13 +69,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'File not available' }, { status: 404 })
     }
 
-    console.log("STORAGE PATH: ", assetData.preview_path)
+    console.log("STORAGE PATH: ", assetData.storage_path)
 
     const { data, error: urlError } = await supabase.storage
-      .from('assets')
-      .createSignedUrl(assetData.preview_path, 60)
+      .from('private_assets')
+      .createSignedUrl(assetData.storage_path, 60, {
+        download: true
+      })
 
     console.log("URL ERROR: ", urlError)
+
+
+    const { data: files, error } = await supabase.storage
+      .from('private_assets')
+      .list('admin')
+
+    console.log("FILES:", files)
+    console.log("LIST ERROR:", error)
 
     if (urlError || !data) {
       return NextResponse.json(
@@ -99,18 +110,28 @@ export async function POST(request: NextRequest) {
 		  )
 		}
 
+        // 1. Get current balance
+    const { data: contributor, error: contributorError } = await supabase
+      .from('profiles')
+      .select('balance')
+      .eq('id', assetData.contributor_id)
+      .single()
+
+    if (contributorError || !contributor) {
+      return NextResponse.json({ error: 'Contributor not found' }, { status: 404 })
+    }
+
+    // 2. Compute new balance
+    const newBalance = (contributor.balance || 0) + calculateContributorEarning(sub.price, sub.downloads_limit)
+
+    // 3. Update
     const { error: updateProfileError } = await supabase
       .from('profiles')
-      .update({
-        balance: supabase.raw('balance + ?', [calculateContributorEarning(sub.price, sub.downloads_limit)])
-      })
+      .update({ balance: newBalance })
       .eq('id', assetData.contributor_id)
 
     if (updateProfileError) {
-      return NextResponse.json(
-        { error: 'Could not update balance count' },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: 'Could not update balance count' }, { status: 500 })
     }
 
     const { data: newDownload, error: downloadError } = await supabase
@@ -122,13 +143,15 @@ export async function POST(request: NextRequest) {
         contributor_id: assetData.contributor_id
       })
 
+    console.log("URL URL:::: ", data.signedUrl)
+
     return NextResponse.json({
       url: data.signedUrl
     })
 
   } catch (error) {
     return NextResponse.json(
-      { error: 'Server error' },
+      { error: error.message },
       { status: 500 }
     )
   }

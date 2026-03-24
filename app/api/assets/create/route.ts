@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
   // upload original
   await supabase.storage
     .from("private_assets")
-    .upload(originalPath, buffer)
+    .upload(originalPath, buffer, { contentType: file.type, })
 
   // upload preview
   await supabase.storage
