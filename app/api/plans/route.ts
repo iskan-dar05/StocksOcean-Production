@@ -24,6 +24,33 @@ const calculateFinalPrice = (
   return price * (1 - discount / 100)
 }
 
+const checkSubscription = async (user_id: string, supabase: any) => {
+  const { data: currentSub, error } = await supabase
+    .from('subscriptions')
+    .select('*')
+    .eq('user_id', user_id)
+    .eq('status', 'active')
+    .maybeSingle()
+
+  if (error) throw new Error(error.message)
+
+  let remainingDownloads = 0
+
+  if (currentSub) {
+    remainingDownloads = (currentSub.downloads_limit ?? 0) - (currentSub.downloads_used ?? 0)
+    if (remainingDownloads < 0) remainingDownloads = 0
+
+    const { error: cancelError } = await supabase
+      .from('subscriptions')
+      .update({ status: 'canceled' })  // use "canceled", be consistent
+      .eq('id', currentSub.id)
+
+    if (cancelError) throw new Error(cancelError.message)
+  }
+
+  return { currentSub, remainingDownloads }
+}
+
 
 export async function POST(request: NextRequest) {
   const startedAt = new Date()
@@ -92,13 +119,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Insert subscription
+
+    const { remainingDownloads } = await checkSubscription(user.id, supabase)
+
     const { data: newSubscription, error: subscriptionError } = await supabase
       .from('subscriptions')
       .insert({
         user_id: user.id,
         plan_id: plan.id,
         status: 'active',
-        downloads_limit: downloads_limit,
+        downloads_limit: downloads_limit + remainingDownloads,
         price: finalPrice,
         started_at: startedAt.toISOString(),
         ends_at: endedAt.toISOString()

@@ -3,6 +3,10 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import Link from 'next/link'
+import { ICONS } from '@/types/icons'
+import { ChevronDown, ChevronUp } from 'lucide-react'
+import toast from 'react-hot-toast'
+
 
 interface Category {
   id: string
@@ -18,6 +22,7 @@ export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState<string | null>(null)
+  const [open, setOpen] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
@@ -63,10 +68,11 @@ export default function CategoriesPage() {
       })
 
       if (error) throw error
+      toast.success("Category created successfully")
       resetForm()
       fetchCategories()
     } catch (error: any) {
-      alert('Error creating category: ' + error.message)
+      toast.error('Error creating category: ' + error.message)
     }
   }
 
@@ -129,6 +135,8 @@ export default function CategoriesPage() {
     })
   }
 
+  const selected = ICONS.find(i => i.name === formData.icon);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -178,13 +186,36 @@ export default function CategoriesPage() {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Icon
             </label>
-            <input
-              type="text"
-              value={formData.icon}
-              onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              placeholder="🌲"
-            />
+            <button
+              onClick={() => setOpen(!open)}
+              className="w-full px-4 py-2 bg-white border rounded-lg flex items-center justify-between"
+            >
+              
+              {selected ? <selected.icon size={18} /> : "Selected Icon"}
+              {open ? (
+                <ChevronUp size={16} className="" />
+              ) : (
+                <ChevronDown size={16} className="" />
+              )}
+            </button>
+
+            {open && (
+               <div className="absolute z-10 mt-2 w-full max-h-60 overflow-y-auto border rounded-lg bg-white dark:bg-gray-700 shadow">
+                {ICONS.map(({ name, icon: Icon }) => (
+                  <div
+                    key={name}
+                    onClick={() => {
+                      setFormData({ ...formData, icon: name });
+                      setOpen(false);
+                    }}
+                    className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer"
+                  >
+                    <Icon size={18} />
+                    <span>{name}</span>
+                  </div>
+                  ))}
+                </div>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">

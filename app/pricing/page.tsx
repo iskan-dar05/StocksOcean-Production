@@ -7,11 +7,13 @@ import Footer from '@/components/layout/Footer'
 import PricingCard from '@/components/marketplace/PricingCard'
 import { supabase } from '@/lib/supabaseClient'
 import { useAuth } from '@/components/auth/AuthProvider'
+import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 
 
 export default function PricingPage() {
   const { user, loading: authLoading } = useAuth()
+  const router = useRouter()
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly')
   const [plans, setPlans] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -131,8 +133,7 @@ type billingPeriodType = 'monthly' | 'yearly'
 
   const handleGetStarted = async (planId: string, billingPeriod: billingPeriod) => {    
     if (!user) {
-      window.location.href = `/auth/signin?redirect=${encodeURIComponent(`/pricing?redirect=${encodeURIComponent('/pricing')}`)}`
-    }
+      router.replace(`/auth/signin?redirect=${encodeURIComponent(`/pricing?redirect=${encodeURIComponent('/pricing')}`)}`)    }
 
     try{
       const response = await fetch('/api/plans', {

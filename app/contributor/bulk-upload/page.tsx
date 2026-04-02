@@ -6,17 +6,18 @@ import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import ContributorBulkUploadForm from '@/components/contributor/BulkUploadForm'
 import { supabase } from '@/lib/supabaseClient'
+import { useAuth } from '@/components/auth/AuthProvider'
+
 
 export default function ContributorBulkUploadPage() {
+  const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [isApproved, setIsApproved] = useState(false)
 
   useEffect(() => {
     const checkContributorStatus = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser()
-        
+      try {        
         if (!user) {
           router.push('/auth/signin')
           return

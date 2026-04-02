@@ -7,8 +7,11 @@ import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import UploadForm from '@/components/UploadForm'
 import { supabase } from '@/lib/supabaseClient'
+import { useAuth } from '@/components/auth/AuthProvider'
+
 
 export default function ContributorUploadPage() {
+  const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -20,9 +23,7 @@ export default function ContributorUploadPage() {
   }, [])
 
   const checkContributorStatus = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      
+    try {      
       if (!user) {
         router.push('/auth/signin')
         return

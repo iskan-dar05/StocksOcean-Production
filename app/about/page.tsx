@@ -4,8 +4,11 @@ import { motion } from 'framer-motion'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import Link from 'next/link'
+import { useAuth } from '@/components/auth/AuthProvider'
+
 
 export default function AboutPage() {
+  const { user, loading: authLoading } = useAuth()
   return (
     <div className="min-h-screen bg-white font-inter">
       <Header />
@@ -137,12 +140,15 @@ export default function AboutPage() {
               Start selling your assets or find the perfect content for your next project
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              {!user && (
               <Link
                 href="/auth/signup"
-                className="px-8 py-3 bg-white text-center text-header hover:text-header rounded-xl font-semibold hover:bg-gray-50 hover:scale-105 transition-colors"
+                className="flex items-center justify-center px-8 py-3 bg-white text-center text-header hover:text-header rounded-xl font-semibold hover:bg-gray-50 hover:scale-105 transition-colors"
               >
                 Get Started
               </Link>
+              )}
+              
               <Link
                 href="/contributor/dashboard"
                 className="px-8 py-3 bg-blue-600  text-white rounded-xl font-semibold hover:bg-blue-800 transition-colors border-2 border-white/20"

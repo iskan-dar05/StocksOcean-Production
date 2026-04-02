@@ -10,6 +10,7 @@ import ContributorStats from '@/components/contributor/ContributorStats'
 import LevelBadge from '@/components/contributor/LevelBadge'
 import ProgressBar from '@/components/contributor/ProgressBar'
 import { supabase } from '@/lib/supabaseClient'
+import { Grid, List } from 'lucide-react'
 import type { Database } from '@/types/supabase'
 
 type Asset = Database['public']['Tables']['assets']['Row']
@@ -382,11 +383,12 @@ export default function ContributorDashboardPage() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 sm:mb-6">
             <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Your Assets</h2>
             <div className="flex gap-2">
-              <button className="px-3 py-1 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                Grid
+              <button className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                <Grid className="w-4 h-4" />
               </button>
-              <button className="px-3 py-1 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                List
+
+              <button className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                <List className="w-4 h-4" />
               </button>
             </div>
           </div>

@@ -7,7 +7,7 @@ export default async function AdminLayout({
   children: React.ReactNode
 }) {
 
-  // 🔐 This runs on server BEFORE rendering
+  // This runs on server BEFORE rendering
   await requireAdmin()
 
   return (

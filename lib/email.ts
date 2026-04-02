@@ -47,11 +47,7 @@ export async function sendNotificationEmail(options: EmailOptions): Promise<void
   const emailContent = generateEmailContent(template, data)
 
   try {
-    // ============================================
-    // OPTION 1: Using Nodemailer with SMTP (Example)
-    // ============================================
-    // Uncomment and configure if using SMTP:
-    /*
+
     const nodemailer = require('nodemailer')
     
     const transporter = nodemailer.createTransport({
@@ -71,46 +67,8 @@ export async function sendNotificationEmail(options: EmailOptions): Promise<void
       html: emailContent.html,
       text: emailContent.text,
     })
-    */
+  
 
-    // ============================================
-    // OPTION 2: Using Resend (Recommended)
-    // ============================================
-    // Install: npm install resend
-    // Uncomment and configure:
-    /*
-    const { Resend } = require('resend')
-    const resend = new Resend(process.env.RESEND_API_KEY)
-
-    await resend.emails.send({
-      from: process.env.RESEND_FROM || 'onboarding@resend.dev',
-      to,
-      subject,
-      html: emailContent.html,
-    })
-    */
-
-    // ============================================
-    // OPTION 3: Using SendGrid
-    // ============================================
-    // Install: npm install @sendgrid/mail
-    // Uncomment and configure:
-    /*
-    const sgMail = require('@sendgrid/mail')
-    sgMail.setApiKey(process.env.SENDGRID_API_KEY!)
-
-    await sgMail.send({
-      to,
-      from: process.env.SENDGRID_FROM || 'noreply@yourdomain.com',
-      subject,
-      html: emailContent.html,
-      text: emailContent.text,
-    })
-    */
-
-    // ============================================
-    // PLACEHOLDER: Log email (for development)
-    // ============================================
     console.log('[Email] Sending email:', {
       to,
       subject,

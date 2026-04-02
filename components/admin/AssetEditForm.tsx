@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import toast from 'react-hot-toast'
 
 interface AssetEditFormProps {
   asset: any
@@ -10,6 +11,7 @@ interface AssetEditFormProps {
 export default function AssetEditForm({ asset }: AssetEditFormProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [formData, setFormData] = useState({
     title: asset.title || '',
     description: asset.description || '',
@@ -38,22 +40,20 @@ export default function AssetEditForm({ asset }: AssetEditFormProps) {
       })
 
       if (response.ok) {
-        alert('Asset updated successfully!')
+        toast.success('Asset updated successfully!')
         router.refresh()
       } else {
         const data = await response.json()
-        alert(data.error || 'Failed to update asset')
+        toast.error(data.error || 'Failed to update asset')
       }
     } catch (error) {
-      alert('Error updating asset')
+      toast.error('Error updating asset')
     } finally {
       setLoading(false)
     }
   }
 
   const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this asset? This action cannot be undone.')) return
-
     setLoading(true)
     try {
       const response = await fetch(`/api/admin/assets/${asset.id}`, {
@@ -61,24 +61,25 @@ export default function AssetEditForm({ asset }: AssetEditFormProps) {
       })
 
       if (response.ok) {
-        alert('Asset deleted successfully!')
+        toast.success('Asset deleted successfully!')
         router.push('/admin/assets')
         router.refresh()
       } else {
         const data = await response.json()
-        alert(data.error || 'Failed to delete asset')
+        toast.error(data.error || 'Failed to delete asset')
       }
     } catch (error) {
-      alert('Error deleting asset')
+      toast.error('Error deleting asset')
     } finally {
       setLoading(false)
+      setShowDeleteModal(false);
     }
   }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2">
-        <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 space-y-6">
+        <form onSubmit={handleSubmit} className="bg-white rounded-xl p-6 border border-gray-200 space-y-6">
           {/* Preview */}
           {asset.preview_path && (
             <div>
@@ -106,9 +107,7 @@ export default function AssetEditForm({ asset }: AssetEditFormProps) {
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={4}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              required
-            />
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"            />
           </div>
 
           {/* Type, Category, Price */}
@@ -204,10 +203,10 @@ export default function AssetEditForm({ asset }: AssetEditFormProps) {
               {loading ? 'Saving...' : 'Save Changes'}
             </button>
             <button
-              type="button"
-              onClick={handleDelete}
-              disabled={loading}
-              className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+            type="button"
+            onClick={() => setShowDeleteModal(true)}
+            disabled={loading}
+            className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
             >
               Delete Asset
             </button>
@@ -243,6 +242,37 @@ export default function AssetEditForm({ asset }: AssetEditFormProps) {
           </div>
         </div>
       </div>
+      {showDeleteModal && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md shadow-lg">
+      
+      <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+        Delete Asset
+      </h2>
+
+      <p className="text-gray-600 dark:text-gray-400 mb-6">
+        Are you sure you want to delete this asset? This action cannot be undone.
+      </p>
+
+      <div className="flex justify-end gap-3">
+        <button
+          onClick={() => setShowDeleteModal(false)}
+          className="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600"
+        >
+          Cancel
+        </button>
+
+        <button
+          onClick={handleDelete}
+          disabled={loading}
+          className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+        >
+          {loading ? "Deleting..." : "Yes, Delete"}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   )
 }

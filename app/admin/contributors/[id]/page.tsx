@@ -60,7 +60,7 @@ export default async function ContributorDetailPage({
           <Link href="/admin/contributors" className="text-blue-600 hover:text-blue-700 dark:text-blue-400 mb-2 inline-block">
             ← Back to Contributors
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Contributor Details</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Contributor Details</h1>
         </div>
       </div>
 
@@ -68,7 +68,7 @@ export default async function ContributorDetailPage({
         {/* Contributor Info */}
         <div className="lg:col-span-2 space-y-6">
           {/* Profile Card */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+          <div className="bg-white rounded-xl p-6 border border-gray-200 dark:border-gray-700">
             <div className="flex items-start gap-6">
               {contributor.avatar_url ? (
                 <img className="h-20 w-20 rounded-full" src={contributor.avatar_url} alt="" />
@@ -104,15 +104,15 @@ export default async function ContributorDetailPage({
 
           {/* Application Info for Pending Users */}
           {contributor.role === 'user' && contributor.application_date && (
-            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-6">
-              <h3 className="text-lg font-bold text-yellow-900 dark:text-yellow-200 mb-2">Pending Contributor Application</h3>
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 rounded-xl p-6">
+              <h3 className="text-lg font-bold text-yellow-900 mb-2">Pending Contributor Application</h3>
               <p className="text-yellow-800 dark:text-yellow-300 mb-4">
                 This user has applied to become a contributor. Review their application and approve or reject it.
               </p>
               <div className="space-y-3 text-sm">
                 <div>
-                  <p className="font-semibold text-yellow-900 dark:text-yellow-200">Application Date:</p>
-                  <p className="text-yellow-700 dark:text-yellow-400">
+                  <p className="font-semibold text-yellow-900">Application Date:</p>
+                  <p className="text-yellow-700">
                     {new Date(contributor.application_date).toLocaleDateString('en-US', {
                       year: 'numeric',
                       month: 'long',

@@ -167,7 +167,7 @@ export default function AdminSidebar() {
   {/* Toggle Button */}
   <motion.button
     onClick={() => setIsMobileOpen(!isMobileOpen)}
-    className="fixed top-0 left-0 md:top-4 md:left-5 z-50 lg:hidden -translate-y-1/2"
+    className="fixed top-2 left-3 md:top-4 md:left-5 z-50 lg:hidden -translate-y-1/2"
     animate={{ x: isMobileOpen ? sidebarWidth : 0 }}
     transition={{ type: 'spring', stiffness: 300, damping: 30 }}
   >

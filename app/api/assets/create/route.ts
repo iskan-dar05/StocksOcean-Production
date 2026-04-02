@@ -5,8 +5,6 @@ import sharp from "sharp"
 
 export async function POST(request: NextRequest) {
   try {
-    // 1. Get authenticated user session
-    console.log("SEVER +++++++++ ================== I WORK!!!!!!!!!")
     const supabase = createUserSupabase()
 
     const { data: { user } } = await supabase.auth.getUser()
@@ -20,7 +18,6 @@ export async function POST(request: NextRequest) {
 
     const userId = user.id
 
-    // 2. Check if user is a contributor or admin
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
@@ -44,7 +41,6 @@ export async function POST(request: NextRequest) {
     const category = formData.get("category") as string
     const tags = JSON.parse((formData.get("tags") as string) || "[]")
   
-    // 4. Validate field types and values
     if (typeof title !== 'string' || title.trim().length === 0) {
       return NextResponse.json(
         { error: 'Title must be a non-empty string' },
@@ -69,15 +65,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate storage path format (should be contributors/{userId}/... or assets/admin/...)
     const isAdmin = profile.role === 'admin'
     const path = isAdmin ? 'admin' : `contributors/${userId}`
 
 
-    // Price is always 0 for subscription-only model
     const price = 0
 
-    // Validate license
     if (typeof license !== 'string') {
       return NextResponse.json(
         { error: 'License must be a string' },
@@ -85,7 +78,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate tags if provided
     if (tags !== undefined && tags !== null) {
       if (!Array.isArray(tags)) {
         return NextResponse.json(
@@ -122,12 +114,10 @@ export async function POST(request: NextRequest) {
     .jpeg({ quality: 75 })
     .toBuffer()
 
-  // upload original
   await supabase.storage
     .from("private_assets")
     .upload(originalPath, buffer, { contentType: file.type, })
 
-  // upload preview
   await supabase.storage
     .from("assets")
     .upload(previewPath, previewBuffer)
@@ -141,7 +131,6 @@ export async function POST(request: NextRequest) {
    
 
 
-    // 6. Prepare asset data for insertion
     const assetData = {
       contributor_id: userId,
       title: title.trim(),
@@ -158,7 +147,6 @@ export async function POST(request: NextRequest) {
       downloads: 0,
     }
 
-    // 7. Insert asset into database using service role key (bypasses RLS)
     const { data: insertedAsset, error: insertError } = await supabase
       .from('assets')
       .insert(assetData)
@@ -183,7 +171,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 8. Return success response
     return NextResponse.json(
       {
         assetId: insertedAsset.id,

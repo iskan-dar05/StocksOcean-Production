@@ -258,7 +258,7 @@ export default function NotificationBell() {
                         </Link>
                         <button 
                           onClick={()=>handleDelete(notification.id)}
-                          className="rounded-full hover:bg-gray-500 p-4">
+                          className="rounded-full bg-gray-500 hover:bg-red-500 p-2">
                           <svg 
                             xmlns="http://www.w3.org/2000/svg" 
                             width="24" 

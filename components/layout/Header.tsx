@@ -551,7 +551,7 @@ useEffect(() => {
                             e.stopPropagation()
                             setIsDropdownOpen(false)
                           }}
-                          className="flex items-center gap-3 px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors font-semibold"
+                          className="flex items-center gap-3 px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 hover:text-blue-600 transition-colors font-semibold"
                         >
                           <svg
                             className="w-5 h-5"
@@ -733,7 +733,7 @@ useEffect(() => {
               
               type="text"
               placeholder="Search..."
-              className={`w-full min-w-0 px-2.5 xs:px-3 sm:px-4 md:px-5 py-2 xs:py-2.5 sm:py-3 pl-8 xs:pl-9 sm:pl-10 md:pl-11 pr-3 xs:pr-4 text-xs xs:text-sm sm:text-base border-2 border-gray-300 dark:border-gray-600 rounded-lg xs:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300
+              className={`w-full min-w-0 px-2.5 xs:px-3 sm:px-4 md:px-5 py-2 xs:py-2.5 sm:py-3 pl-8 xs:pl-9 sm:pl-10 md:pl-11 pr-3 xs:pr-4 text-xs xs:text-sm sm:text-base border-2 border-gray-300 dark:border-gray-600 rounded-lg xs:rounded-xl bg-white text-gray-900 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300
                 ${isSearchFocused
                   ? 'block px-3 xs:px-4 sm:px-5 md:px-6 py-2.5 xs:py-3 sm:py-3.5 md:py-4 text-sm xs:text-base sm:text-lg md:text-lg shadow-lg border-blue-500 pr-8 xs:pr-10 sm:pr-12'
                   : 'hidden'
@@ -831,8 +831,8 @@ useEffect(() => {
 
                 focus:outline-none
                 focus:border-none
-                focus:ring-4
-                focus:ring-gray-400
+                focus:ring-1
+                focus:ring-header
                 focus:shadow-medium"                
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {

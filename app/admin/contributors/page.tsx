@@ -24,28 +24,28 @@ async function ContributorsList({ status }: { status?: string }) {
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
       <div className="overflow-x-auto -mx-3 sm:mx-0">
         <div className="inline-block min-w-full align-middle">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-700">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
               <tr>
-                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   User
                 </th>
-                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider hidden lg:table-cell">
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
                   Application Message
                 </th>
-                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider hidden sm:table-cell">
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
                   Level
                 </th>
-                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider hidden md:table-cell">
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                   Assets
                 </th>
-                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider hidden md:table-cell">
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                   Earnings
                 </th>
                 <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
@@ -53,10 +53,10 @@ async function ContributorsList({ status }: { status?: string }) {
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+            <tbody className="bg-white divide-y divide-gray-200">
             {filteredContributors && filteredContributors.length > 0 ? (
               filteredContributors.map((contributor) => (
-                <tr key={contributor.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                <tr key={contributor.id} className="hover:bg-gray-50">
                   <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-8 w-8 sm:h-10 sm:w-10">
@@ -69,24 +69,24 @@ async function ContributorsList({ status }: { status?: string }) {
                         )}
                       </div>
                       <div className="ml-2 sm:ml-4">
-                        <div className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
+                        <div className="text-xs sm:text-sm font-medium text-gray-900">
                           {contributor.username || 'Unknown'}
                         </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 hidden sm:block">{contributor.id.slice(0, 8)}...</div>
+                        <div className="text-xs text-gray-500 hidden sm:block">{contributor.id.slice(0, 8)}...</div>
                       </div>
                     </div>
                   </td>
                   <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                     {contributor.role === 'user' && contributor.application_date ? (
-                      <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300">
+                      <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
                         PENDING
                       </span>
                     ) : contributor.role === 'contributor' ? (
-                      <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300">
+                      <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
                         APPROVED
                       </span>
                     ) : (
-                      <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300">
+                      <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
                         {(contributor.role || 'user').toUpperCase()}
                       </span>
                     )}
@@ -99,10 +99,10 @@ async function ContributorsList({ status }: { status?: string }) {
                         </p>
                       </div>
                     ) : (
-                      <span className="text-gray-400 dark:text-gray-500 text-xs">—</span>
+                      <span className="text-gray-400 text-xs">—</span>
                     )}
                   </td>
-                  <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white hidden sm:table-cell">
+                  <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden sm:table-cell">
                     {contributor.contributor_tier ? (
                       <span className={`px-2 py-1 rounded text-xs font-semibold text-white ${
                         contributor.contributor_tier === 'bronze' ? 'bg-amber-600' :
@@ -114,16 +114,16 @@ async function ContributorsList({ status }: { status?: string }) {
                       </span>
                     ) : null}
                   </td>
-                  <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white hidden md:table-cell">
+                  <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden md:table-cell">
                     N/A
                   </td>
-                  <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white hidden md:table-cell">
+                  <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden md:table-cell">
                     N/A
                   </td>
                   <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm font-medium">
                     <Link
                       href={`/admin/contributors/${contributor.id}`}
-                      className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                      className="text-blue-600 hover:text-blue-900"
                     >
                       View
                     </Link>

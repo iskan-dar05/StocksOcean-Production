@@ -16,14 +16,18 @@ export async function POST(request: NextRequest) {
 
     const { assetId } = await request.json()
 
-    const user = await createClient()
+    // Use RLS permission
     const supabase = supabaseAdmin
 
-    // console.log("USER USER:: from download route.ts: ", user)
+    const { data: { user } } = await supabase.auth.getUser()
+
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+
+  // get active plan
 
    const { data: sub } = await supabase
 	  .from('subscriptions')
@@ -37,7 +41,6 @@ export async function POST(request: NextRequest) {
 	  .eq('status', 'active')
 	  .single()
 	
-		console.log("SUB TEST FIXED:", sub)
 
     if (!sub) {
       return NextResponse.json({ error: 'No active plan' }, { status: 403 })
@@ -69,7 +72,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'File not available' }, { status: 404 })
     }
 
-    console.log("STORAGE PATH: ", assetData.storage_path)
 
     const { data, error: urlError } = await supabase.storage
       .from('private_assets')
@@ -77,15 +79,11 @@ export async function POST(request: NextRequest) {
         download: true
       })
 
-    console.log("URL ERROR: ", urlError)
 
 
     const { data: files, error } = await supabase.storage
       .from('private_assets')
       .list('admin')
-
-    console.log("FILES:", files)
-    console.log("LIST ERROR:", error)
 
     if (urlError || !data) {
       return NextResponse.json(
@@ -121,10 +119,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Contributor not found' }, { status: 404 })
     }
 
-    // 2. Compute new balance
     const newBalance = (contributor.balance || 0) + calculateContributorEarning(sub.price, sub.downloads_limit)
 
-    // 3. Update
     const { error: updateProfileError } = await supabase
       .from('profiles')
       .update({ balance: newBalance })
@@ -143,7 +139,6 @@ export async function POST(request: NextRequest) {
         contributor_id: assetData.contributor_id
       })
 
-    console.log("URL URL:::: ", data.signedUrl)
 
     return NextResponse.json({
       url: data.signedUrl
