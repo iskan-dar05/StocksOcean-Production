@@ -47,7 +47,9 @@ export default function SignUpPage() {
       provider,
       options: { redirectTo: window.location.origin },
     })
-    if (error) toast.error("Error Sign up", error)
+    if (error) {
+      toast.error("Error Sign up", error)
+    }
   }
 
   return (

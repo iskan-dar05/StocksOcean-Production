@@ -16,6 +16,7 @@ type Profile = Database['public']['Tables']['profiles']['Row']
 
 export default function AssetDetailPage({ params }: { params: { id: string } }) {
   const { user, loading: authLoading } = useAuth()
+  const [loading, setLoading] = useState(false)
   const [asset, setAsset] = useState<Asset | null>(null)
   const [contributor, setContributor] = useState<Profile | null>(null)
   const [relatedAssets, setRelatedAssets] = useState<Asset[]>([])
@@ -56,6 +57,7 @@ export default function AssetDetailPage({ params }: { params: { id: string } }) 
   }
 
   const fetchAsset = async () => {
+    setLoading(true)
     try {
       // Fetch asset
       const { data: assetData, error: assetError } = await supabase
@@ -97,6 +99,7 @@ export default function AssetDetailPage({ params }: { params: { id: string } }) 
         } catch (error) {
           // Profiles table might not exist, use auth.users data instead
           console.warn('Could not fetch profile:', error)
+          setLoading(false)
         }
       } else {
         // No contributor_id means it's an admin upload
@@ -118,6 +121,7 @@ export default function AssetDetailPage({ params }: { params: { id: string } }) 
       const { data: relatedData } = await relatedQuery.limit(4)
 
       setRelatedAssets(relatedData || [])
+      setLoading(false)
     } catch (error) {
       console.error('Error fetching asset:', error)
     } finally {
@@ -281,7 +285,7 @@ export default function AssetDetailPage({ params }: { params: { id: string } }) 
     }
   }
 
-  if (authLoading) {
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-white">
         <Header />

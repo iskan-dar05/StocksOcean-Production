@@ -7,10 +7,6 @@ function getRemainingDownloads(downloadsUsed: number, downloadLimit: number) {
 }
 
 
-function calculateContributorEarning(price: number, downloads_limit:number, commission=0.33) {
-  return (price / downloads_limit) * commission
-}
-
 export async function POST(request: NextRequest) {
   try {
 
@@ -92,53 +88,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const {error: updateSubscriptionError} = await supabase
-      .from('subscriptions')
-      .update({
-        downloads_used: sub.downloads_used + 1
-      })
-      .eq('user_id', user.id)
-
-   
-
-    if (updateSubscriptionError) {
-		  return NextResponse.json(
-		    { error: 'Could not update download count' },
-		    { status: 500 }
-		  )
-		}
-
-        // 1. Get current balance
-    const { data: contributor, error: contributorError } = await supabase
-      .from('profiles')
-      .select('balance')
-      .eq('id', assetData.contributor_id)
-      .single()
-
-    if (contributorError || !contributor) {
-      return NextResponse.json({ error: 'Contributor not found' }, { status: 404 })
-    }
-
-    const newBalance = (contributor.balance || 0) + calculateContributorEarning(sub.price, sub.downloads_limit)
-
-    const { error: updateProfileError } = await supabase
-      .from('profiles')
-      .update({ balance: newBalance })
-      .eq('id', assetData.contributor_id)
-
-    if (updateProfileError) {
-      return NextResponse.json({ error: 'Could not update balance count' }, { status: 500 })
-    }
-
-    const { data: newDownload, error: downloadError } = await supabase
-      .from('downloads')
-      .insert({
-        asset_id: assetData.id,
-        subscription_id: sub.id,
-        buyer_id: user.id,
-        contributor_id: assetData.contributor_id
-      })
-
+  
+    await supabase.rpc('process_download', {
+      p_user_id: user.id,
+      p_asset_id: assetId,
+      p_subscription_id: sub.id,
+      p_price: sub.price,
+      p_downloads_limit: sub.subscription_plans.monthly_downloads
+    });
+    
 
     return NextResponse.json({
       url: data.signedUrl

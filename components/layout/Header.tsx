@@ -576,7 +576,7 @@ useEffect(() => {
                             e.stopPropagation()
                             setIsDropdownOpen(false)
                           }}
-                          className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                          className="flex items-center gap-3 px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 hover:text-blue-600 transition-colors font-semibold"
                         >
                           <svg
                             className="w-5 h-5"
