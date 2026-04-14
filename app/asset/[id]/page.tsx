@@ -25,6 +25,7 @@ export default function AssetDetailPage({ params }: { params: { id: string } }) 
   const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
+    console.log("USER USER USER:::::::::     ", user)
     fetchAsset()
   }, [params.id])
 

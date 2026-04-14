@@ -93,8 +93,9 @@ export default function ContributorDashboardPage() {
       const { data: earningsData } = await supabase
         .from('earnings')
         .select('amount')
-        .eq('contributor_id', user.id)
+        .eq('owner_id', user.id)
       const earnings = earningsData?.reduce((sum, e) => sum + Number(e.amount || 0), 0) || 0
+      console.log("EARNINGS:: ", earnings)
 
       // Get lifetime downloads from profile
       const lifetimeDownloads = profileData?.total_download_count || 0

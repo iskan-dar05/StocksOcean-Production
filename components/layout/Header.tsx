@@ -27,6 +27,7 @@ export default function Header() {
   const headerRef = useRef<HTMLElement>(null)
   const [headerHeight, setHeaderHeight] = useState(56)
   const router = useRouter()
+  const [balance, setBalance] = useState(0)
 
   // Track if component is mounted for portal
   useEffect(() => {
@@ -72,11 +73,14 @@ useEffect(() => {
       return
   }
 
+  console.log("USER USER USER:::::::: FROM HEADER::::::::::    ", user)
+
+
   const loadProfile = async () => {
     try {
       const { data: profileData, error } = await supabase
         .from('profiles')
-        .select('role, username, avatar_url')
+        .select('role, username, balance, avatar_url')
         .eq('id', user.id)
         .maybeSingle()
 
@@ -90,6 +94,7 @@ useEffect(() => {
         console.log("DATA PROFILE ROLE:  ", profileData.role)
         setIsApprovedContributor(profileData.role === 'contributor')
         setUsername(profileData.username || '')
+        setBalance(profileData.balance || 0)
         setAvatarUrl(profileData.avatar_url || '')
       }
 
@@ -182,6 +187,8 @@ useEffect(() => {
     })
   }
 
+
+
   const isActive = (path: string) => pathname === path
 
   // Mobile Menu Component
@@ -220,7 +227,11 @@ useEffect(() => {
               <input
                 type="text"
                 placeholder="Search assets..."
-                className="w-full px-4 xs:px-5 sm:px-5 md:px-6 py-3 xs:py-3.5 sm:py-4 pl-10 xs:pl-11 sm:pl-12 md:pl-14 pr-4 text-sm xs:text-base sm:text-lg border-1 border-gray-200 rounded-lg xs:rounded-xl bg-white text-primary placeholder-gray-400 focus:ring-2 focus:ring-header focus:border-header transition-all touch-manipulation min-h-[44px] xs:min-h-[48px]"
+                className="w-full px-4 focus:outline-none
+                focus:border-none
+                focus:ring-1
+                focus:ring-header
+                focus:shadow-medium xs:px-5 sm:px-5 md:px-6 py-3 xs:py-3.5 sm:py-4 pl-10 xs:pl-11 sm:pl-12 md:pl-14 pr-4 text-sm xs:text-base sm:text-lg border-1 border-gray-200 rounded-lg xs:rounded-xl bg-white text-primary placeholder-gray-400 focus:ring-2 focus:ring-header focus:border-header transition-all touch-manipulation min-h-[44px] xs:min-h-[48px]"
                 onKeyPress={(e) => {
                   if (e.key === 'Enter') {
                     const query = (e.target as HTMLInputElement).value
@@ -390,7 +401,7 @@ useEffect(() => {
                   <Link
                     href="/contributor/dashboard"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center gap-2.5 xs:gap-3 sm:gap-4 px-4 xs:px-5 sm:px-5 md:px-6 py-2.5 xs:py-3 sm:py-3.5 md:py-4 rounded-lg xs:rounded-xl text-sm xs:text-base sm:text-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors touch-manipulation min-h-[44px] xs:min-h-[48px]"
+                    className="flex items-center gap-2.5 xs:gap-3 sm:gap-4 px-4 xs:px-5 sm:px-5 md:px-6 py-2.5 xs:py-3 sm:py-3.5 md:py-4 rounded-lg xs:rounded-xl text-sm xs:text-base sm:text-lg font-medium text-gray-700 hover:text-gray-700 hover:bg-gray-100 transition-colors touch-manipulation min-h-[44px] xs:min-h-[48px]"
                   >
                     <svg className="w-4 h-4 xs:w-5 xs:h-5 sm:w-6 sm:h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -435,6 +446,10 @@ useEffect(() => {
               <div className="w-8 h-8 xl:w-9 xl:h-9 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin flex-shrink-0"></div>
             ) : user ? (
               <>
+                {isApprovedContributor && (
+                  <span className="font-bold">{balance || 0} $</span>
+                )}
+                <span>{}</span>
                 <Link href="/favorites" className="p-1">
                   <svg
                     className="w-6 h-6 text-gray-700 hover:text-red-500 transition"

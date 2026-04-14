@@ -13,9 +13,12 @@ export async function POST(request: NextRequest) {
     const { assetId } = await request.json()
 
     // Use RLS permission
-    const supabase = supabaseAdmin
+    const supabase = createUserSupabase()
+    const adminSupabase = supabaseAdmin
 
     const { data: { user } } = await supabase.auth.getUser()
+
+    console.log("USER USER::::::: ", user)
 
 
     if (!user) {
@@ -28,6 +31,7 @@ export async function POST(request: NextRequest) {
    const { data: sub } = await supabase
 	  .from('subscriptions')
 	  .select(`
+      id,
 	    downloads_used,
 	    subscription_plans (monthly_downloads),
       downloads_limit,
@@ -68,16 +72,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'File not available' }, { status: 404 })
     }
 
+    console.log("STORAGE PATH::::::: ", assetData.storage_path)
 
-    const { data, error: urlError } = await supabase.storage
+
+    const { data, error: urlError } = await adminSupabase.storage
       .from('private_assets')
       .createSignedUrl(assetData.storage_path, 60, {
         download: true
       })
 
+    console.log("DOWNLOAD LINK ERROR:::::   ", urlError)
 
 
-    const { data: files, error } = await supabase.storage
+
+    const { data: files, error } = await adminSupabase.storage
       .from('private_assets')
       .list('admin')
 
@@ -88,15 +96,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
+
+    console.log("SUBSCRIPTION MONTHLY DOWNLOADS:: ", sub.subscription_plans.monthly_downloads)
+    console.log("SUB ID:::: ", sub.id)
   
-    await supabase.rpc('process_download', {
-      p_user_id: user.id,
-      p_asset_id: assetId,
-      p_subscription_id: sub.id,
-      p_price: sub.price,
-      p_downloads_limit: sub.subscription_plans.monthly_downloads
-    });
-    
+    const { data: rpcData, error: rpcError } = await supabase.rpc('process_download_v2', {
+        p_asset_id: assetId,
+        p_downloads_limit: sub.subscription_plans.monthly_downloads,
+        p_price: sub.price,
+        p_subscription_id: sub.id,
+        p_user_id: user.id
+      })
+
+    console.log("RPC DATA:", rpcData)
+    console.log("RPC ERROR:", rpcError)
+        
 
     return NextResponse.json({
       url: data.signedUrl

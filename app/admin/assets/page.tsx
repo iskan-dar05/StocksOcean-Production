@@ -141,7 +141,7 @@ export default function AssetsPage({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Assets</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Assets</h1>
           <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">Manage all assets in the marketplace</p>
         </div>
         <div className="flex flex-wrap gap-2 sm:gap-3">
@@ -177,7 +177,7 @@ export default function AssetsPage({
           className={`px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors ${
             searchParams.status === 'pending'
               ? 'bg-blue-600 text-white'
-              : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700'
+              : 'bg-white text-gray-700 border border-gray-200'
           }`}
         >
           Pending
@@ -187,7 +187,7 @@ export default function AssetsPage({
           className={`px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors ${
             searchParams.status === 'approved'
               ? 'bg-blue-600 text-white'
-              : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700'
+              : 'bg-white text-gray-700 border border-gray-200'
           }`}
         >
           Approved
@@ -197,7 +197,7 @@ export default function AssetsPage({
           className={`px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors ${
             searchParams.type === 'image'
               ? 'bg-blue-600 text-white'
-              : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700'
+              : 'bg-white text-gray-700 border border-gray-200'
           }`}
         >
           Images

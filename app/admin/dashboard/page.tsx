@@ -40,6 +40,25 @@ export default function AdminDashboardPage() {
   const [assetsByDay, setAssetsByDay] = useState<Array<{ date: string; count: number }>>([])
   const [revenueByDay, setRevenueByDay] = useState<Array<{ date: string; revenue: number }>>([])
   const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState<any>(null)
+
+  
+  useEffect(()=>{
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if(!user){
+        setLoading(true)
+      }
+
+      setUser(user)
+
+      setLoading(false)
+    }
+
+    getUser()
+  }, [])
+
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -54,7 +73,7 @@ export default function AdminDashboardPage() {
           { data: pendingContributorsData },
           { data: allAssetsForDownloads },
           { data: recentAssets },
-          { data: allOrders },
+          { data: allEarnings },
         ] = await Promise.all([
           supabase.from('assets').select('*', { count: 'exact', head: true }),
           supabase.from('profiles').select('*', { count: 'exact', head: true }),
@@ -71,22 +90,22 @@ export default function AdminDashboardPage() {
           supabase
             .from('assets')
             .select('downloads')
-            .limit(10000), // Get all assets for accurate download count
+            .limit(10000),
           supabase
             .from('assets')
             .select('id, title, created_at, views, downloads')
             .order('created_at', { ascending: false })
             .limit(7),
           supabase
-            .from('orders')
-            .select('id, price_paid, created_at, status')
-            .eq('status', 'completed')
+            .from('earnings')
+            .select('id, amount, created_at')
+            .eq('owner_id', user.id)
             .order('created_at', { ascending: false })
-            .limit(1000), // Get more orders for accurate revenue
+            .limit(1000),
         ])
 
         // Calculate REAL revenue and downloads from ALL data
-        const totalRevenue = allOrders?.reduce((sum, order) => sum + (Number(order.price_paid) || 0), 0) || 0
+        const totalRevenue = allEarnings?.reduce((sum, earning) => sum + (Number(earning.amount) || 0), 0) || 0
         const totalDownloads = allAssetsForDownloads?.reduce((sum, asset) => sum + (Number(asset.downloads) || 0), 0) || 0
 
         // Prepare chart data (last 7 days)
@@ -103,7 +122,7 @@ export default function AdminDashboardPage() {
 
         const revenueByDayData = last7Days.map((date) => {
           const revenue =
-            allOrders?.filter((order) => order.created_at?.startsWith(date)).reduce((sum, order) => sum + (Number(order.price_paid) || 0), 0) || 0
+            allEarnings?.filter((earning) => earning.created_at?.startsWith(date)).reduce((sum, earning) => sum + (Number(earning.amount) || 0), 0) || 0
           return { date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), revenue }
         })
 
